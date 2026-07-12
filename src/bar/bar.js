@@ -1,6 +1,17 @@
 const input = document.getElementById("search-input");
 const resultEl = document.getElementById("result");
+const historyEl = document.getElementById("history");
 const appEl = document.getElementById("app");
+
+// The initial theme rides in on the URL (set by main.js at loadFile time)
+// so the very first paint is already correct — no flash while we wait on
+// an IPC round trip. Live changes still arrive via onThemeChanged below.
+const initialTheme = new URLSearchParams(window.location.search).get("theme");
+document.documentElement.dataset.theme = initialTheme || "light";
+
+window.api.onThemeChanged((theme) => {
+  document.documentElement.dataset.theme = theme;
+});
 
 function reportSize() {
   // Tell the main process how tall our content is so it can resize the
@@ -10,6 +21,17 @@ function reportSize() {
 
 function stripTags(text) {
   return text.replace(/\{[^}]*\}/g, "");
+}
+
+function formatRelativeTime(timestamp) {
+  const diffMs = Date.now() - timestamp;
+  const minutes = Math.floor(diffMs / 60000);
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes} min ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hr ago`;
+  const days = Math.floor(hours / 24);
+  return `${days} day${days === 1 ? "" : "s"} ago`;
 }
 
 function renderEntries(word, entries) {
@@ -91,6 +113,8 @@ async function runLookup() {
   const word = input.value.trim();
   if (!word) return;
 
+  historyEl.innerHTML = "";
+
   const response = await window.api.lookupWord(word);
 
   if (!response.ok) {
@@ -104,12 +128,61 @@ async function runLookup() {
   reportSize();
 }
 
+async function showHistory() {
+  const items = await window.api.getRecentHistory();
+  if (!items || items.length === 0) {
+    historyEl.innerHTML = "";
+    reportSize();
+    return;
+  }
+
+  historyEl.innerHTML = items
+    .map(
+      (item) => `
+        <div class="history-item" data-word="${item.word}">
+          <span class="history-word">${item.word}</span>
+          <span class="history-meta">
+            ${item.partOfSpeech ? `<span class="history-pos">${item.partOfSpeech}</span>` : ""}
+            <span class="history-time">${formatRelativeTime(item.timestamp)}</span>
+          </span>
+        </div>
+      `
+    )
+    .join("");
+
+  historyEl.querySelectorAll(".history-item").forEach((row) => {
+    row.addEventListener("click", () => {
+      input.value = row.dataset.word;
+      runLookup();
+    });
+  });
+
+  reportSize();
+}
+
+function hideHistory() {
+  if (historyEl.innerHTML !== "") {
+    historyEl.innerHTML = "";
+    reportSize();
+  }
+}
+
 input.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
     runLookup();
   } else if (event.key === "Escape") {
     window.api.hideBar();
   }
+});
+
+input.addEventListener("input", () => {
+  if (input.value.trim() === "") {
+    resultEl.innerHTML = "";
+    showHistory();
+  } else {
+    hideHistory();
+  }
+  reportSize();
 });
 
 document.addEventListener("keydown", (event) => {
@@ -121,6 +194,9 @@ document.addEventListener("keydown", (event) => {
 window.api.onBarShown(() => {
   input.focus();
   input.select();
+  if (input.value.trim() === "") {
+    showHistory();
+  }
 });
 
 new ResizeObserver(reportSize).observe(appEl);

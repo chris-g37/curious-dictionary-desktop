@@ -9,4 +9,16 @@ contextBridge.exposeInMainWorld("api", {
   hideBar: () => ipcRenderer.send("hide-bar"),
   resizeBar: (contentHeight) => ipcRenderer.send("resize-bar", contentHeight),
   onBarShown: (callback) => ipcRenderer.on("bar-shown", callback),
+
+  getRecentHistory: () => ipcRenderer.invoke("get-recent-history"),
+  requestClearHistory: () => ipcRenderer.invoke("request-clear-history"),
+
+  getSettings: () => ipcRenderer.invoke("get-settings"),
+  saveApiKey: (key) => ipcRenderer.invoke("save-api-key", key),
+  saveTheme: (theme) => ipcRenderer.invoke("save-theme", theme),
+  openExternal: (url) => ipcRenderer.invoke("open-external", url),
+
+  getEffectiveTheme: () => ipcRenderer.invoke("get-effective-theme"),
+  onThemeChanged: (callback) =>
+    ipcRenderer.on("theme-changed", (event, theme) => callback(theme)),
 });
