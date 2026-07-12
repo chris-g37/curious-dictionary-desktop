@@ -1,0 +1,78 @@
+:root {
+  --icon-bg: #6f4e37;
+  --glyph: #f3e7da;
+  --pin-dot: #c1663e;
+}
+
+[data-theme="dark"] {
+  --icon-bg: #3a2e25;
+  --glyph: #f3eae2;
+  --pin-dot: #d97a4e;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  overflow: hidden;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+#icon-wrap {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#icon-btn {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--icon-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: box-shadow 0.15s ease;
+}
+
+#icon-btn:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 0 0 6px rgba(111, 78, 55, 0.18);
+}
+
+#icon-btn:active {
+  cursor: grabbing;
+}
+
+#book-glyph {
+  color: var(--glyph);
+  pointer-events: none;
+}
+
+#pin-dot {
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--pin-dot);
+  border: 2px solid var(--icon-bg);
+  display: none;
+}
+
+#pin-dot.visible {
+  display: block;
+}

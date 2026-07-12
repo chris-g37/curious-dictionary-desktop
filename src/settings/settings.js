@@ -6,6 +6,7 @@ const getKeyLink = document.getElementById("get-key-link");
 const themeButtons = document.querySelectorAll(".theme-option");
 const clearHistoryBtn = document.getElementById("clear-history");
 const clearStatus = document.getElementById("clear-status");
+const floatingIconToggle = document.getElementById("floating-icon-toggle");
 
 const initialTheme = new URLSearchParams(window.location.search).get("theme");
 document.documentElement.dataset.theme = initialTheme || "light";
@@ -71,4 +72,22 @@ clearHistoryBtn.addEventListener("click", async () => {
 window.api.getSettings().then(({ apiKey, theme }) => {
   apiKeyInput.value = apiKey || "";
   setActiveThemeButton(theme || "system");
+});
+
+function setFloatingIconToggleUI(enabled) {
+  floatingIconToggle.setAttribute("aria-checked", String(enabled));
+}
+
+floatingIconToggle.addEventListener("click", async () => {
+  const next = floatingIconToggle.getAttribute("aria-checked") !== "true";
+  setFloatingIconToggleUI(next);
+  await window.api.setFloatingIconEnabled(next);
+});
+
+window.api.onFloatingIconEnabledChanged((enabled) => {
+  setFloatingIconToggleUI(enabled);
+});
+
+window.api.getFloatingIconSettings().then(({ enabled }) => {
+  setFloatingIconToggleUI(enabled);
 });

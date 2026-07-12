@@ -35,6 +35,7 @@ const store = new Store({
     mwApiKey: "",
     theme: "system",
     history: [],
+    floatingIcon: { enabled: false, x: null, y: null, pinned: false },
   },
 });
 
@@ -48,9 +49,11 @@ const BAR_WIDTH = 640;
 const INITIAL_HEIGHT = 64;
 const TOP_OFFSET_RATIO = 0.15;
 const ALLOWED_EXTERNAL_URLS = new Set(["https://dictionaryapi.com"]);
+const ICON_WINDOW_SIZE = 44;
 
 let barWindow = null;
 let settingsWindow = null;
+let iconWindow = null;
 let tray = null;
 let isQuitting = false;
 
@@ -304,6 +307,112 @@ function createSettingsWindow() {
   });
 }
 
+function getDefaultFloatingIconPosition() {
+  const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+  return {
+    x: width - ICON_WINDOW_SIZE,
+    y: Math.round((height - ICON_WINDOW_SIZE) / 2),
+  };
+}
+
+function createFloatingIconWindow() {
+  const fi = store.get("floatingIcon");
+  const pos =
+    fi.x != null && fi.y != null ? { x: fi.x, y: fi.y } : getDefaultFloatingIconPosition();
+
+  iconWindow = new BrowserWindow({
+    x: pos.x,
+    y: pos.y,
+    width: ICON_WINDOW_SIZE,
+    height: ICON_WINDOW_SIZE,
+    frame: false,
+    transparent: true,
+    backgroundColor: "#00000000",
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    resizable: false,
+    movable: false,
+    // Not focusable: clicking the icon must never steal OS keyboard focus
+    // away from whatever the user was doing. Focus and mouse clicks are
+    // separate OS-level concerns — this only opts the window out of ever
+    // becoming the active/focused window (no WM_SETFOCUS), while mouse
+    // hit-testing (mousedown/mousemove/mouseup/click) still works normally,
+    // so dragging and clicking both function exactly as if it were a
+    // regular window.
+    focusable: false,
+    hasShadow: false,
+    show: false,
+    webPreferences: {
+      preload: path.join(__dirname, "preload.js"),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  });
+
+  iconWindow.loadFile(path.join(__dirname, "src", "floating-icon", "icon.html"), {
+    query: { theme: getEffectiveTheme(), pinned: String(fi.pinned) },
+  });
+}
+
+function moveFloatingIcon(x, y) {
+  if (!iconWindow) return;
+  iconWindow.setPosition(Math.round(x), Math.round(y));
+}
+
+// Called on mouseup once a real drag (not just a click) happened. This is
+// "released" — there's no polling involved, the renderer's own mouseup
+// event is the signal, forwarded to us over IPC.
+function endFloatingIconDrag() {
+  if (!iconWindow) return;
+  const [x, y] = iconWindow.getPosition();
+  const { width: screenWidth, height: screenHeight } = screen.getPrimaryDisplay().workAreaSize;
+
+  const centerX = x + ICON_WINDOW_SIZE / 2;
+  const snappedX =
+    centerX < screenWidth / 2 ? 0 : screenWidth - ICON_WINDOW_SIZE;
+  const clampedY = Math.max(0, Math.min(y, screenHeight - ICON_WINDOW_SIZE));
+
+  iconWindow.setPosition(snappedX, clampedY);
+
+  const fi = store.get("floatingIcon");
+  store.set("floatingIcon", { ...fi, x: snappedX, y: clampedY });
+}
+
+function toggleFloatingIconPinned() {
+  const fi = store.get("floatingIcon");
+  const pinned = !fi.pinned;
+  store.set("floatingIcon", { ...fi, pinned });
+  if (iconWindow) {
+    iconWindow.webContents.send("floating-icon-pinned-changed", pinned);
+  }
+}
+
+function setFloatingIconEnabled(enabled) {
+  const fi = store.get("floatingIcon");
+  store.set("floatingIcon", { ...fi, enabled });
+  if (iconWindow) {
+    if (enabled) {
+      iconWindow.show();
+    } else {
+      iconWindow.hide();
+    }
+  }
+  BrowserWindow.getAllWindows().forEach((win) => {
+    win.webContents.send("floating-icon-enabled-changed", enabled);
+  });
+}
+
+function showFloatingIconMenu() {
+  const fi = store.get("floatingIcon");
+  const menu = Menu.buildFromTemplate([
+    { label: fi.pinned ? "Unpin" : "Pin", click: toggleFloatingIconPinned },
+    { label: "Hide floating icon", click: () => setFloatingIconEnabled(false) },
+    { type: "separator" },
+    { label: "Settings", click: createSettingsWindow },
+  ]);
+  menu.popup({ window: iconWindow });
+}
+
 function createTray() {
   const iconPath = path.join(__dirname, "assets", "icons", "tray-icon.png");
   tray = new Tray(iconPath);
@@ -342,7 +451,12 @@ app.whenReady().then(() => {
   nativeTheme.themeSource = store.get("theme", "system");
 
   createBarWindow();
+  createFloatingIconWindow();
   createTray();
+
+  if (store.get("floatingIcon").enabled) {
+    iconWindow.show();
+  }
 
   nativeTheme.on("updated", broadcastTheme);
 
@@ -408,6 +522,21 @@ app.whenReady().then(() => {
     if (ALLOWED_EXTERNAL_URLS.has(url)) {
       shell.openExternal(url);
     }
+  });
+
+  ipcMain.on("move-floating-icon", (event, x, y) => moveFloatingIcon(x, y));
+  ipcMain.on("end-floating-icon-drag", () => endFloatingIconDrag());
+  ipcMain.on("click-floating-icon", () => toggleBar());
+  ipcMain.on("show-floating-icon-menu", () => showFloatingIconMenu());
+
+  ipcMain.handle("get-floating-icon-settings", () => {
+    const fi = store.get("floatingIcon");
+    return { enabled: fi.enabled, pinned: fi.pinned };
+  });
+
+  ipcMain.handle("set-floating-icon-enabled", (event, enabled) => {
+    setFloatingIconEnabled(enabled);
+    return true;
   });
 });
 

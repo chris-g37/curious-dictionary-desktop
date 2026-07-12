@@ -22,4 +22,16 @@ contextBridge.exposeInMainWorld("api", {
   getEffectiveTheme: () => ipcRenderer.invoke("get-effective-theme"),
   onThemeChanged: (callback) =>
     ipcRenderer.on("theme-changed", (event, theme) => callback(theme)),
+
+  moveFloatingIcon: (x, y) => ipcRenderer.send("move-floating-icon", x, y),
+  endFloatingIconDrag: () => ipcRenderer.send("end-floating-icon-drag"),
+  clickFloatingIcon: () => ipcRenderer.send("click-floating-icon"),
+  showFloatingIconMenu: () => ipcRenderer.send("show-floating-icon-menu"),
+  getFloatingIconSettings: () => ipcRenderer.invoke("get-floating-icon-settings"),
+  setFloatingIconEnabled: (enabled) =>
+    ipcRenderer.invoke("set-floating-icon-enabled", enabled),
+  onFloatingIconEnabledChanged: (callback) =>
+    ipcRenderer.on("floating-icon-enabled-changed", (event, enabled) => callback(enabled)),
+  onFloatingIconPinnedChanged: (callback) =>
+    ipcRenderer.on("floating-icon-pinned-changed", (event, pinned) => callback(pinned)),
 });

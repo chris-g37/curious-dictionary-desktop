@@ -48,8 +48,12 @@ your recent searches, and follows your OS theme.
   Settings window, or dismissing the bar, never quits the app — only
   **Quit** from the tray does
 - Settings (tray → Settings) holds your API key, a Light/Dark/System theme
-  picker, a "Clear history" button, and a read-only list of both keyboard
-  shortcuts
+  picker, a "Clear history" button, a "Show floating icon" toggle, and a
+  read-only list of both keyboard shortcuts
+- The floating icon (off by default — turn it on in Settings) is a small
+  draggable button that floats above other windows. Left-click it to
+  summon the bar, drag it anywhere and let go to snap it to the nearest
+  screen edge, right-click for Pin/Unpin, Hide, and Settings
 
 ## How it's built
 
@@ -64,8 +68,11 @@ your recent searches, and follows your OS theme.
 - `src/bar/` — the summon bar renderer: the search pill, result card, and
   recent-history list.
 - `src/settings/` — the settings window renderer: API key field, theme
-  picker, clear-history button.
-- Both renderers are sandboxed webpages (`contextIsolation: true`,
+  picker, clear-history button, floating-icon toggle.
+- `src/floating-icon/` — the floating icon renderer: a 36px circular
+  button, dragged and clicked entirely with hand-rolled mouse-event
+  handling (see below).
+- All renderers are sandboxed webpages (`contextIsolation: true`,
   `nodeIntegration: false`) with no direct filesystem or network access.
 - `assets/icons/` — the tray icon.
 
@@ -132,3 +139,40 @@ block synthetic input from a non-elevated process like our app. In that
 case the clipboard simply won't change, which is indistinguishable from
 "nothing was selected," so both land on the same honest "couldn't grab
 the selection" hint rather than a false positive.
+
+### How the floating icon is draggable but never steals focus
+
+The icon's `BrowserWindow` is created with `focusable: false`. On Windows
+this is the difference between two things that are easy to conflate:
+*focus* (which window receives keyboard input and counts as "active") and
+*mouse hit-testing* (which window a click/drag lands on). They're
+independent — `focusable: false` only opts the window out of the first one
+(no `WM_SETFOCUS`, it can never become the active window), so clicking it
+never yanks keyboard focus away from whatever app you were just typing
+into. Mouse events are untouched by this setting: `mousedown`, `mousemove`,
+and `mouseup` all fire in the icon's renderer exactly as they would in any
+other window, which is what makes dragging and clicking both possible
+without ever activating it.
+
+Dragging itself is hand-rolled in `src/floating-icon/icon.js` rather than
+using Electron's native `-webkit-app-region: drag`, specifically so we can
+tell a *click* (summon the bar) apart from a *drag* (reposition) and know
+exactly when the mouse was released:
+
+- `mousedown` on the icon starts tracking, but doesn't move anything yet.
+- `mousemove` (listened for on `window`, not just the icon) computes how
+  far the cursor has traveled; once that passes a small threshold (4px) it
+  counts as a real drag, and each further move repositions the window via
+  `BrowserWindow.setPosition()`. Below that threshold, it's still
+  considered a click-in-progress. Mouse events keep arriving here even
+  once the cursor is outside the tiny 44px window, because Chromium
+  implicitly captures the mouse to whichever window a `mousedown` started
+  in — the same mechanism that lets you drag a `<input type="range">`
+  slider past the edge of a normal web page.
+- `mouseup` is "released." If the 4px threshold was never crossed, it's
+  treated as a plain click and asks the main process to toggle the search
+  bar. If it was crossed, the main process reads the window's current
+  position, decides left or right edge based on which half of the screen
+  its center is in, and snaps it there with one more `setPosition()` call
+  — no continuous polling involved, the renderer's own `mouseup` is the
+  entire signal.
