@@ -8,7 +8,8 @@ contextBridge.exposeInMainWorld("api", {
   lookupWord: (word) => ipcRenderer.invoke("lookup-word", word),
   hideBar: () => ipcRenderer.send("hide-bar"),
   resizeBar: (contentHeight) => ipcRenderer.send("resize-bar", contentHeight),
-  onBarShown: (callback) => ipcRenderer.on("bar-shown", callback),
+  onBarShown: (callback) =>
+    ipcRenderer.on("bar-shown", (event, payload) => callback(payload)),
 
   getRecentHistory: () => ipcRenderer.invoke("get-recent-history"),
   requestClearHistory: () => ipcRenderer.invoke("request-clear-history"),

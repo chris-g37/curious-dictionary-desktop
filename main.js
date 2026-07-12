@@ -13,8 +13,10 @@ const {
   screen,
   shell,
   dialog,
+  clipboard,
 } = require("electron");
 const path = require("path");
+const { execFile } = require("child_process");
 const Store = require("electron-store");
 
 let config;
@@ -101,13 +103,18 @@ function createBarWindow() {
   });
 }
 
-function showBar() {
+// options.selection distinguishes "plain summon" (word/hint ignored, renderer
+// keeps whatever was there before — the Task 1/2 behavior) from a
+// selection-triggered summon, where word/hint (even if empty) should
+// override the input box.
+function showBar(options = {}) {
   if (!barWindow) return;
+  const { selection = false, word = null, hint = null } = options;
   const bounds = barWindow.getBounds();
   barWindow.setBounds(getCenteredBounds(bounds.height));
   barWindow.show();
   barWindow.focus();
-  barWindow.webContents.send("bar-shown");
+  barWindow.webContents.send("bar-shown", { selection, word, hint });
 }
 
 function hideBar() {
@@ -122,6 +129,140 @@ function toggleBar() {
   } else {
     showBar();
   }
+}
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Sends Ctrl+C to whatever window currently has OS focus. We deliberately
+// never show/focus our own window before calling this — globalShortcut
+// fires without stealing focus, so the app the user was selecting text in
+// (browser, Notepad, etc.) is still the foreground window, and PowerShell
+// runs hidden so it can't steal focus either. SendKeys is the "boring"
+// choice here: it ships with Windows, needs zero npm dependencies, and
+// avoids the native-module/ABI-rebuild headaches of something like
+// robotjs. The tradeoff is ~100-300ms of process-spawn latency per call,
+// which is why we still cap the whole flow with the 150ms settle wait below
+// rather than trying to shave it further.
+//
+// Sending that keystroke also has a side effect: Windows now considers
+// PowerShell (not our app) the process that "recently generated input,"
+// which is the only process Windows normally lets call SetForegroundWindow
+// without restriction. Without a fix, our subsequent barWindow.focus() call
+// in showBar() is silently downgraded — the window still becomes visible
+// (it's alwaysOnTop) but never actually receives OS keyboard focus, so Esc
+// keydowns go nowhere and no blur event ever fires when clicking away. The
+// fix is AllowSetForegroundWindow: while PowerShell still holds that
+// privilege, it explicitly hands it to our own process (by pid) so the
+// focus() call right after actually works.
+function sendCtrlC() {
+  // process.pid is a plain integer we control, so it's safe to embed
+  // directly in the script text — no quoting/escaping needed, and it
+  // sidesteps a PowerShell CLI quirk where trailing execFile args after
+  // "-Command" get glued onto the end of the script as literal text
+  // instead of populating $args the way "-File" would.
+  const psCommand =
+    "Add-Type -AssemblyName System.Windows.Forms; " +
+    "[System.Windows.Forms.SendKeys]::SendWait('^c'); " +
+    "Add-Type -Name ForegroundHelper -Namespace Win32Interop -MemberDefinition " +
+    "'[DllImport(\"user32.dll\")] public static extern bool AllowSetForegroundWindow(int dwProcessId);'; " +
+    `[Win32Interop.ForegroundHelper]::AllowSetForegroundWindow(${process.pid}) | Out-Null`;
+
+  return new Promise((resolve) => {
+    execFile(
+      "powershell.exe",
+      [
+        "-NoProfile",
+        "-NonInteractive",
+        "-Sta",
+        "-WindowStyle",
+        "Hidden",
+        "-Command",
+        psCommand,
+      ],
+      { windowsHide: true, timeout: 3000 },
+      (error) => resolve(!error)
+    );
+  });
+}
+
+// A snapshot of "what was on the clipboard before we touched it." We only
+// capture/restore the plain-text (and paired HTML, for rich-text copies)
+// representation. If the clipboard held something else — an image, a file
+// from Explorer — readText() comes back empty while availableFormats()
+// isn't, so isText is false and restoreClipboardSnapshot below skips the
+// write entirely rather than guessing how to reconstruct it.
+function captureClipboardSnapshot() {
+  const formats = clipboard.availableFormats();
+  const text = clipboard.readText();
+  const isText = formats.length === 0 || text.length > 0;
+  return {
+    isText,
+    text,
+    html: isText ? clipboard.readHTML() : null,
+  };
+}
+
+function restoreClipboardSnapshot(snapshot) {
+  if (!snapshot.isText) return;
+  if (snapshot.html) {
+    clipboard.write({ text: snapshot.text, html: snapshot.html });
+  } else {
+    clipboard.writeText(snapshot.text);
+  }
+}
+
+// trim -> first word only -> strip surrounding punctuation -> lowercase ->
+// reject empty/too-long/no-letters. Returns "" for anything rejected.
+function sanitizeSelection(raw) {
+  if (!raw) return "";
+  const trimmed = raw.trim();
+  if (!trimmed) return "";
+  const firstToken = trimmed.split(/\s+/)[0];
+  const stripped = firstToken.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, "");
+  const word = stripped.toLowerCase();
+  if (!word || word.length > 30) return "";
+  if (!/\p{L}/u.test(word)) return "";
+  return word;
+}
+
+async function handleSelectionHotkey() {
+  // 1. Save whatever is on the clipboard right now.
+  const before = captureClipboardSnapshot();
+
+  // 2. Ask the OS to send Ctrl+C to the still-focused foreground window.
+  const sendOk = await sendCtrlC();
+
+  // 3. Give the target app a moment to actually respond to the keystroke
+  // and write to the clipboard before we go read it.
+  await sleep(150);
+
+  // 4. Read whatever landed there.
+  const after = captureClipboardSnapshot();
+
+  // 5. Put the user's original clipboard contents back, immediately —
+  // before we do anything else with the grabbed text.
+  restoreClipboardSnapshot(before);
+
+  const grabbedNewText = sendOk && after.text.length > 0 && after.text !== before.text;
+
+  if (!grabbedNewText) {
+    // Either SendKeys itself failed, or the clipboard is byte-for-byte
+    // the same as before — meaning nothing was selected, or the
+    // foreground window (often an elevated/admin one) blocked the
+    // synthetic keystroke. Either way, we didn't get anything new.
+    showBar({
+      selection: true,
+      word: "",
+      hint: "Couldn't grab the selection — type the word instead",
+    });
+    return;
+  }
+
+  // 6. Sanitize. A rejected result (whole sentence with no clean single
+  // word, pure punctuation, etc.) just shows the empty bar, no hint —
+  // we did grab a selection, it just wasn't lookup-shaped.
+  const word = sanitizeSelection(after.text);
+  showBar({ selection: true, word, hint: null });
 }
 
 function createSettingsWindow() {
@@ -206,6 +347,7 @@ app.whenReady().then(() => {
   nativeTheme.on("updated", broadcastTheme);
 
   globalShortcut.register("Ctrl+Shift+Space", toggleBar);
+  globalShortcut.register("Ctrl+Shift+D", handleSelectionHotkey);
 
   ipcMain.on("hide-bar", () => hideBar());
 

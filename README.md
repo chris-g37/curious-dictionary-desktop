@@ -36,6 +36,9 @@ your recent searches, and follows your OS theme.
 - **Ctrl+Shift+Space**, or left-clicking the tray icon — show the bar
   (focused and ready to type) or hide it if it's already open
 - Type a word, press **Enter** to look it up
+- **Ctrl+Shift+D** — highlight a word in any Windows app (browser, PDF
+  reader, Word, Notepad, ...) and press this to pop the bar up with that
+  word already looked up
 - **Escape**, or clicking anywhere outside the bar, hides it
 - Hiding doesn't clear anything — summon it again and your last result is
   still there
@@ -45,7 +48,8 @@ your recent searches, and follows your OS theme.
   Settings window, or dismissing the bar, never quits the app — only
   **Quit** from the tray does
 - Settings (tray → Settings) holds your API key, a Light/Dark/System theme
-  picker, and a "Clear history" button
+  picker, a "Clear history" button, and a read-only list of both keyboard
+  shortcuts
 
 ## How it's built
 
@@ -87,3 +91,44 @@ project's own `config.js`/`config.example.js`, which only exist as a
 one-time import path for the API key on first run. Because the store reads
 straight from that file, a change made in Settings (like a new API key or
 theme) takes effect on the very next lookup or repaint — no restart needed.
+
+### How select-anywhere lookup works (the clipboard trick)
+
+There's no Windows API that hands you "the currently selected text in some
+other app" — the only universal way to get it is the same thing a human
+would do: copy it. `Ctrl+Shift+D` triggers this sequence in `main.js`
+(`handleSelectionHotkey`):
+
+1. **Snapshot the clipboard.** Read whatever's on it right now (text, plus
+   paired HTML if it's rich text). If it's not text at all — an image, a
+   file — that's noted so we know not to try reconstructing it later.
+2. **Send a synthetic Ctrl+C** to whatever window currently has OS focus.
+   Global shortcuts don't steal focus, so at this point that's still
+   whatever app you were selecting text in, not our (still-hidden) bar
+   window.
+3. **Wait ~150ms** for that app to actually respond to the keystroke and
+   write to the clipboard.
+4. **Read the clipboard again** and compare it to the snapshot from step 1.
+5. **Restore the original clipboard contents** immediately — before doing
+   anything else with what was grabbed, so a slow network lookup can't
+   leave your clipboard in the wrong state in the meantime.
+6. **Sanitize and show the bar.** If the clipboard never changed (nothing
+   was selected, or the keystroke got blocked), show the bar empty with a
+   one-line hint. Otherwise take the first word, strip punctuation,
+   lowercase it, and run the lookup automatically.
+
+For step 2, the synthetic Ctrl+C, I went with spawning
+`powershell.exe ... [System.Windows.Forms.SendKeys]::SendWait('^c')` rather
+than a native automation module like `robotjs`. Reasoning: native modules
+need to be rebuilt against Electron's exact ABI, prebuilt binaries for a
+given Electron/Node/Windows combination aren't always available, and
+`robotjs` in particular is effectively unmaintained. SendKeys ships with
+every Windows install, needs zero npm dependencies, and just works. The
+tradeoff is that spawning a process costs on the order of 100-300ms —
+acceptable here since the whole flow already waits on a network call.
+
+Some windows — anything running elevated/as Administrator, in particular —
+block synthetic input from a non-elevated process like our app. In that
+case the clipboard simply won't change, which is indistinguishable from
+"nothing was selected," so both land on the same honest "couldn't grab
+the selection" hint rather than a false positive.

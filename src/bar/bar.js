@@ -1,6 +1,7 @@
 const input = document.getElementById("search-input");
 const resultEl = document.getElementById("result");
 const historyEl = document.getElementById("history");
+const hintEl = document.getElementById("selection-hint");
 const appEl = document.getElementById("app");
 
 // The initial theme rides in on the URL (set by main.js at loadFile time)
@@ -114,6 +115,7 @@ async function runLookup() {
   if (!word) return;
 
   historyEl.innerHTML = "";
+  clearHint();
 
   const response = await window.api.lookupWord(word);
 
@@ -167,6 +169,18 @@ function hideHistory() {
   }
 }
 
+function showHint(message) {
+  hintEl.textContent = message;
+  reportSize();
+}
+
+function clearHint() {
+  if (hintEl.textContent !== "") {
+    hintEl.textContent = "";
+    reportSize();
+  }
+}
+
 input.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
     runLookup();
@@ -176,6 +190,7 @@ input.addEventListener("keydown", (event) => {
 });
 
 input.addEventListener("input", () => {
+  clearHint();
   if (input.value.trim() === "") {
     resultEl.innerHTML = "";
     showHistory();
@@ -191,8 +206,27 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
-window.api.onBarShown(() => {
+window.api.onBarShown((payload) => {
   input.focus();
+
+  if (payload && payload.selection) {
+    // A selection-triggered summon always overrides whatever was in the
+    // box, even with an empty string — that's how it's told apart from a
+    // plain re-summon, which leaves the last state alone (below).
+    clearHint();
+    resultEl.innerHTML = "";
+    input.value = payload.word || "";
+
+    if (payload.word) {
+      hideHistory();
+      runLookup();
+    } else {
+      showHistory();
+      if (payload.hint) showHint(payload.hint);
+    }
+    return;
+  }
+
   input.select();
   if (input.value.trim() === "") {
     showHistory();
