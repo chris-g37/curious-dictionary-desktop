@@ -55,6 +55,17 @@ your recent searches, and follows your OS theme.
   summon the bar, drag it anywhere and let go to snap it to the nearest
   screen edge, right-click for Pin/Unpin, Hide, and Settings
 
+## Testing the packaged build
+
+`npm run build` produces two Windows executables in `dist/`: a portable
+`.exe` and an NSIS installer `.exe`. The portable one is a single
+self-contained file — no install, no admin prompt, just double-click it
+and the app runs, the same as `npm start` but without needing Node or this
+source tree around. That's the one for daily use. The installer is for
+when you want a proper install with a Start Menu shortcut and an
+uninstaller, which matters more for handing the app to someone else than
+for your own machine.
+
 ## How it's built
 
 - `main.js` — the main process. This is the only part of the app with

@@ -1,0 +1,38 @@
+appId: com.chrisgandiko.curious-dictionary
+productName: Curious Dictionary
+
+directories:
+  output: dist
+
+# Default electron-builder behavior is "include everything in the project
+# except a standard ignore list" — the "**/*" entry keeps that default, and
+# the "!" lines carve out exceptions on top of it. config.js is the
+# important one: it can hold a real API key locally and must never end up
+# inside a distributable.
+files:
+  - "**/*"
+  - "!config.js"
+  - "!config.example.js"
+  - "!*.md"
+  - "!.gitignore"
+  - "!.git"
+  - "!.claude${/*}"
+  - "!electron-builder.yml"
+
+win:
+  icon: assets/icons/app-icon.ico
+  target:
+    - target: portable
+      arch: [x64]
+    - target: nsis
+      arch: [x64]
+
+portable:
+  artifactName: ${productName}-${version}-portable.${ext}
+
+nsis:
+  artifactName: ${productName}-${version}-setup.${ext}
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
