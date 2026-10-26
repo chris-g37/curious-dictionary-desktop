@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<meta name="design_doc_mode" content="canvas">
+<style>
+body { margin: 0; font-family: 'Inter', system-ui, sans-serif; background: #EAE3D8; color: #2A211B; -webkit-font-smoothing: antialiased; }
+a { color: #6F4E37; text-decoration: none; }
+a:hover { color: #C1663E; }
+button { font-family: 'Inter', system-ui, sans-serif; }
+</style>
+</helmet>
+
+<div style="padding: 88px 80px 120px; min-height: 100vh; background: #EAE3D8; box-sizing: border-box; min-width: 2120px;">
+
+<!-- Header -->
+<div style="max-width: 1960px; margin: 0 auto 80px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 48px; align-items: end;">
+  <div>
+    <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 22px;">
+      <div style="width: 40px; height: 40px; border-radius: 10px; background: #6F4E37; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px -10px rgba(42,33,27,0.6);"><svg width="20" height="20" viewBox="0 0 24 24" fill="#FAF7F2"><path d="M4 3h13a3 3 0 013 3v15l-4-2-4 2-4-2-4 2V3z"></path></svg></div>
+      <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #6F4E37;">Desktop · v2 · Offline + main window</span>
+    </div>
+    <div style="font-family: 'Fraunces', Georgia, serif; font-size: 76px; font-weight: 400; letter-spacing: -0.035em; line-height: 0.95; color: #2A211B;">Curious <span style="font-style: italic; color: #C1663E;">Dictionary</span></div>
+    <div style="font-size: 16px; line-height: 1.6; color: #6F4E37; margin-top: 22px; max-width: 620px; text-wrap: pretty;">A quiet, warm dictionary for Windows. This board covers the summon bar, result card, main window, settings, about and floating icon, in light and dark. Version 2 adds an offline Wiktionary pack, source badges, Saved words and a proper main window.</div>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 10px; min-width: 320px; padding: 22px 24px; border-radius: 14px; background: #F4EEE5; border: 1px solid rgba(111,78,55,0.12);">
+    <div style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #8B7362; margin-bottom: 4px;">New in this pass</div>
+    <a href="#2g" style="display: flex; justify-content: space-between; gap: 20px; font-size: 13px; color: #2A211B;"><span>Source badge, light + dark</span><span style="font-family: 'JetBrains Mono', monospace; color: #C1663E;">2G</span></a>
+    <a href="#2a" style="display: flex; justify-content: space-between; gap: 20px; font-size: 13px; color: #2A211B;"><span>Open in app, result footer</span><span style="font-family: 'JetBrains Mono', monospace; color: #C1663E;">2A</span></a>
+    <a href="#3e" style="display: flex; justify-content: space-between; gap: 20px; font-size: 13px; color: #2A211B;"><span>Main window result, Pin + Copy</span><span style="font-family: 'JetBrains Mono', monospace; color: #C1663E;">3E</span></a>
+    <a href="#3f" style="display: flex; justify-content: space-between; gap: 20px; font-size: 13px; color: #2A211B;"><span>Autocomplete from the pack</span><span style="font-family: 'JetBrains Mono', monospace; color: #C1663E;">3F</span></a>
+    <a href="#3g" style="display: flex; justify-content: space-between; gap: 20px; font-size: 13px; color: #2A211B;"><span>Saved view</span><span style="font-family: 'JetBrains Mono', monospace; color: #C1663E;">3G</span></a>
+    <a href="#4a" style="display: flex; justify-content: space-between; gap: 20px; font-size: 13px; color: #2A211B;"><span>Dictionary source + pack status</span><span style="font-family: 'JetBrains Mono', monospace; color: #C1663E;">4A</span></a>
+    <a href="#5a" style="display: flex; justify-content: space-between; gap: 20px; font-size: 13px; color: #2A211B;"><span>About / Licenses</span><span style="font-family: 'JetBrains Mono', monospace; color: #C1663E;">5A</span></a>
+  </div>
+</div>
+
+<div style="max-width: 1960px; margin: 0 auto; display: flex; flex-direction: column; gap: 112px;">
+
+<!-- ================= 01 SUMMON BAR ================= -->
+<section>
+  <div style="display: flex; align-items: baseline; gap: 18px; padding-bottom: 18px; margin-bottom: 32px; border-bottom: 1px solid rgba(111,78,55,0.18);">
+    <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.14em; color: #C1663E;">01</span>
+    <span style="font-family: 'Fraunces', Georgia, serif; font-size: 30px; font-weight: 400; letter-spacing: -0.02em;">Summon bar</span>
+    <span style="font-size: 13.5px; color: #8B7362;">Frameless · Ctrl ⇧ Space · centered top · no credit, no chrome</span>
+  </div>
+  <div style="display: flex; flex-wrap: wrap; gap: 32px;">
+    <div id="1a" style="flex-shrink: 0; width: 720px;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.08em; background: #2A211B; color: #F3EAE2; padding: 3px 8px; border-radius: 4px;">1A</span><span style="font-size: 12.5px; color: #6F4E37;">Light · typing</span></div>
+      <div style="height: 280px; border-radius: 16px; position: relative; overflow: hidden; background: repeating-linear-gradient(135deg, #D8CBB8 0 14px, #D3C5B1 14px 28px);">
+        <span style="position: absolute; right: 16px; bottom: 14px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #8B7362; text-transform: uppercase;">desktop</span>
+        <div style="position: absolute; top: 56px; left: 50%; transform: translateX(-50%); width: 580px; height: 64px; box-sizing: border-box; background: #FFFFFF; border-radius: 18px; padding: 0 16px 0 22px; display: flex; align-items: center; gap: 16px; box-shadow: 0 30px 60px -28px rgba(42,33,27,0.55), 0 2px 6px rgba(42,33,27,0.06), 0 0 0 1px rgba(111,78,55,0.10);">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#6F4E37" stroke-width="1.8"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+          <div style="flex: 1; display: flex; align-items: center; font-family: 'Fraunces', Georgia, serif; font-size: 24px; color: #2A211B; letter-spacing: -0.01em;">petrichor<span style="width: 2px; height: 26px; background: #C1663E; margin-left: 2px; border-radius: 1px;"></span></div>
+          <div style="display: flex; align-items: center; gap: 6px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 3px 7px; border-radius: 6px; background: #F4EEE5; color: #6F4E37;">↵</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 3px 7px; border-radius: 6px; background: #F4EEE5; color: #6F4E37;">esc</span></div>
+        </div>
+      </div>
+    </div>
+    <div id="1b" style="flex-shrink: 0; width: 720px;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.08em; background: #F3EAE2; color: #2A211B; padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(111,78,55,0.2);">1B</span><span style="font-size: 12.5px; color: #6F4E37;">Dark · typing</span></div>
+      <div style="height: 280px; border-radius: 16px; position: relative; overflow: hidden; background: repeating-linear-gradient(135deg, #1E1712 0 14px, #1A140F 14px 28px);">
+        <span style="position: absolute; right: 16px; bottom: 14px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #6F5A4A; text-transform: uppercase;">desktop</span>
+        <div style="position: absolute; top: 56px; left: 50%; transform: translateX(-50%); width: 580px; height: 64px; box-sizing: border-box; background: #3A2E25; border-radius: 18px; padding: 0 16px 0 22px; display: flex; align-items: center; gap: 16px; box-shadow: 0 30px 60px -24px rgba(0,0,0,0.8), 0 0 0 1px rgba(243,234,226,0.08);">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#C4A891" stroke-width="1.8"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+          <div style="flex: 1; display: flex; align-items: center; font-family: 'Fraunces', Georgia, serif; font-size: 24px; color: #F3EAE2; letter-spacing: -0.01em;">petrichor<span style="width: 2px; height: 26px; background: #D97A4E; margin-left: 2px; border-radius: 1px;"></span></div>
+          <div style="display: flex; align-items: center; gap: 6px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 3px 7px; border-radius: 6px; background: #2A211B; color: #C4A891;">↵</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 3px 7px; border-radius: 6px; background: #2A211B; color: #C4A891;">esc</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 02 RESULT CARD ================= -->
+<section>
+  <div style="display: flex; align-items: baseline; gap: 18px; padding-bottom: 18px; margin-bottom: 32px; border-bottom: 1px solid rgba(111,78,55,0.18);">
+    <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.14em; color: #C1663E;">02</span>
+    <span style="font-family: 'Fraunces', Georgia, serif; font-size: 30px; font-weight: 400; letter-spacing: -0.02em;">Result card</span>
+    <span style="font-size: 13.5px; color: #8B7362;">Attached beneath the bar · normalized entry shape · source badge replaces the hardcoded MW footer</span>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start;">
+    <!-- 2A light offline -->
+    <div id="2a" style="flex-shrink: 0; width: 720px;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.08em; background: #2A211B; color: #F3EAE2; padding: 3px 8px; border-radius: 4px;">2A</span><span style="font-size: 12.5px; color: #6F4E37;">Light · found · Offline · Wiktionary</span></div>
+      <div style="border-radius: 16px; padding: 44px 0; background: repeating-linear-gradient(135deg, #D8CBB8 0 14px, #D3C5B1 14px 28px); display: flex; justify-content: center;">
+        <div style="width: 580px; border-radius: 18px; overflow: hidden; background: #FAF7F2; box-shadow: 0 40px 80px -36px rgba(42,33,27,0.6), 0 0 0 1px rgba(111,78,55,0.10);">
+          <div style="height: 58px; background: #FFFFFF; padding: 0 16px 0 22px; display: flex; align-items: center; gap: 14px; border-bottom: 1px solid rgba(111,78,55,0.08);">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#6F4E37" stroke-width="1.8"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+            <span style="flex: 1; font-family: 'Fraunces', Georgia, serif; font-size: 20px; color: #2A211B;">petrichor</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 3px 7px; border-radius: 6px; background: #F4EEE5; color: #6F4E37;">esc</span>
+          </div>
+          <div style="padding: 30px 30px 6px;">
+            <div style="display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;">
+              <span style="font-family: 'Fraunces', Georgia, serif; font-size: 50px; font-weight: 400; letter-spacing: -0.03em; line-height: 1; color: #2A211B;">petrichor</span>
+              <span style="font-size: 14px; color: #8B7362; white-space: nowrap;">/ˈpɛtɹɪkɔː(ɹ)/</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px; margin-top: 24px;"><span style="font-family: 'Fraunces', Georgia, serif; font-style: italic; font-size: 15px; color: #C1663E;">noun</span><span style="flex: 1; height: 1px; background: rgba(111,78,55,0.12);"></span></div>
+            <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 14px;">
+              <div style="display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px;"><span style="font-family: 'Fraunces', Georgia, serif; font-size: 15px; color: #C1663E;">1</span><div><div style="font-size: 14.5px; line-height: 1.6; color: #2A211B; text-wrap: pretty;">The distinctive scent, usually described as pleasant, that accompanies the first rain after a long warm dry spell.</div><div style="font-family: 'Fraunces', Georgia, serif; font-style: italic; font-size: 14px; line-height: 1.55; color: #6F4E37; margin-top: 6px;">“The petrichor rose from the pavement after the first summer storm.”</div></div></div>
+              <div style="display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px;"><span style="font-family: 'Fraunces', Georgia, serif; font-size: 15px; color: #C1663E;">2</span><div style="font-size: 14.5px; line-height: 1.6; color: #2A211B;">The oil exuded by plants during dry periods, absorbed by rocks and released by rain.</div></div>
+            </div>
+            <div style="margin-top: 22px; padding: 14px 16px; border-radius: 10px; background: #F4EEE5;">
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #8B7362;">Origin</div>
+              <div style="font-family: 'Fraunces', Georgia, serif; font-size: 13.5px; line-height: 1.55; color: #6F4E37; margin-top: 5px;">Coined in 1964 by Isabel Bear and Richard Thomas, from <i>petro-</i> (“stone”) + <i>ichor</i>.</div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px 14px 30px; margin-top: 20px; border-top: 1px solid rgba(111,78,55,0.08);">
+            <span style="display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; height: 24px; padding: 0 10px 0 9px; border-radius: 999px; background: oklch(0.935 0.03 140); color: oklch(0.40 0.06 140); font-size: 11.5px; font-weight: 500;"><span style="width: 6px; height: 6px; border-radius: 50%; background: oklch(0.58 0.09 140);"></span>Offline · Wiktionary</span>
+            <div style="display: flex; align-items: center; gap: 2px;">
+              <button title="Copy" style="width: 32px; height: 32px; border: none; background: transparent; border-radius: 8px; color: #6F4E37; display: flex; align-items: center; justify-content: center; cursor: pointer;" style-hover="background: rgba(111,78,55,0.08);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="8" y="8" width="12" height="12" rx="2"></rect><path d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2"></path></svg></button>
+              <button title="Pin to Saved" style="width: 32px; height: 32px; border: none; background: transparent; border-radius: 8px; color: #6F4E37; display: flex; align-items: center; justify-content: center; cursor: pointer;" style-hover="background: rgba(111,78,55,0.08);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3h12v18l-6-4-6 4z"></path></svg></button>
+              <button title="History" style="width: 32px; height: 32px; border: none; background: transparent; border-radius: 8px; color: #6F4E37; display: flex; align-items: center; justify-content: center; cursor: pointer;" style-hover="background: rgba(111,78,55,0.08);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></button>
+              <span style="width: 1px; height: 18px; background: rgba(111,78,55,0.15); margin: 0 8px;"></span>
+              <button style="display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px; border-radius: 9px; border: 1px solid rgba(111,78,55,0.18); background: #FFFFFF; color: #2A211B; font-size: 12.5px; font-weight: 500; cursor: pointer;" style-hover="border-color: #C1663E; color: #C1663E;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1h5"></path></svg>Open in app</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.6; color: #8B7362; margin-top: 12px; max-width: 640px;">Open in app → opens or focuses the main window on this word and hides the bar. Pin → adds to Saved (shared via main process).</div>
+    </div>
+
+    <!-- 2B dark MW -->
+    <div id="2b" style="flex-shrink: 0; width: 720px;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.08em; background: #F3EAE2; color: #2A211B; padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(111,78,55,0.2);">2B</span><span style="font-size: 12.5px; color: #6F4E37;">Dark · found · Merriam-Webster · pinned</span></div>
+      <div style="border-radius: 16px; padding: 44px 0; background: repeating-linear-gradient(135deg, #1E1712 0 14px, #1A140F 14px 28px); display: flex; justify-content: center;">
+        <div style="width: 580px; border-radius: 18px; overflow: hidden; background: #2A211B; box-shadow: 0 40px 80px -30px rgba(0,0,0,0.85), 0 0 0 1px rgba(243,234,226,0.08);">
+          <div style="height: 58px; background: #3A2E25; padding: 0 16px 0 22px; display: flex; align-items: center; gap: 14px; border-bottom: 1px solid rgba(243,234,226,0.06);">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#C4A891" stroke-width="1.8"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+            <span style="flex: 1; font-family: 'Fraunces', Georgia, serif; font-size: 20px; color: #F3EAE2;">quotidian</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 3px 7px; border-radius: 6px; background: #2A211B; color: #C4A891;">esc</span>
+          </div>
+          <div style="padding: 30px 30px 6px;">
+            <div style="display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;">
+              <span style="font-family: 'Fraunces', Georgia, serif; font-size: 50px; font-weight: 400; letter-spacing: -0.03em; line-height: 1; color: #F3EAE2;">quotidian</span>
+              <span style="font-size: 14px; color: #A08A78; white-space: nowrap;">/kwō-ˈti-dē-ən/</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px; margin-top: 24px;"><span style="font-family: 'Fraunces', Georgia, serif; font-style: italic; font-size: 15px; color: #D97A4E;">adjective</span><span style="flex: 1; height: 1px; background: rgba(243,234,226,0.08);"></span></div>
+            <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 14px;">
+              <div style="display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px;"><span style="font-family: 'Fraunces', Georgia, serif; font-size: 15px; color: #D97A4E;">1</span><div style="font-size: 14.5px; line-height: 1.6; color: #F3EAE2;">Occurring every day.</div></div>
+              <div style="display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px;"><span style="font-family: 'Fraunces', Georgia, serif; font-size: 15px; color: #D97A4E;">2</span><div><div style="font-size: 14.5px; line-height: 1.6; color: #F3EAE2;">Belonging to each day; everyday.</div><div style="font-family: 'Fraunces', Georgia, serif; font-style: italic; font-size: 14px; line-height: 1.55; color: #C4A891; margin-top: 6px;">“the quotidian rhythms of the city”</div></div></div>
+              <div style="display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px;"><span style="font-family: 'Fraunces', Georgia, serif; font-size: 15px; color: #D97A4E;">3</span><div style="font-size: 14.5px; line-height: 1.6; color: #F3EAE2;">Commonplace, ordinary.</div></div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px 14px 30px; margin-top: 26px; border-top: 1px solid rgba(243,234,226,0.06);">
+            <span style="display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; height: 24px; padding: 0 10px 0 9px; border-radius: 999px; background: oklch(0.33 0.05 45); color: oklch(0.86 0.07 55); font-size: 11.5px; font-weight: 500;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #D97A4E;"></span>Merriam-Webster</span>
+            <div style="display: flex; align-items: center; gap: 2px;">
+              <button title="Copy" style="width: 32px; height: 32px; border: none; background: transparent; border-radius: 8px; color: #C4A891; display: flex; align-items: center; justify-content: center; cursor: pointer;" style-hover="background: rgba(243,234,226,0.06);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="8" y="8" width="12" height="12" rx="2"></rect><path d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2"></path></svg></button>
+              <button title="Pinned" style="width: 32px; height: 32px; border: none; background: transparent; border-radius: 8px; color: #D97A4E; display: flex; align-items: center; justify-content: center; cursor: pointer;" style-hover="background: rgba(243,234,226,0.06);"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.6"><path d="M6 3h12v18l-6-4-6 4z"></path></svg></button>
+              <button title="History" style="width: 32px; height: 32px; border: none; background: transparent; border-radius: 8px; color: #C4A891; display: flex; align-items: center; justify-content: center; cursor: pointer;" style-hover="background: rgba(243,234,226,0.06);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></button>
+              <span style="width: 1px; height: 18px; background: rgba(243,234,226,0.10); margin: 0 8px;"></span>
+              <button style="display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px; border-radius: 9px; border: 1px solid rgba(243,234,226,0.14); background: #3A2E25; color: #F3EAE2; font-size: 12.5px; font-weight: 500; cursor: pointer;" style-hover="border-color: #D97A4E; color: #D97A4E;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1h5"></path></svg>Open in app</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.6; color: #8B7362; margin-top: 12px; max-width: 640px;">Pinned state: filled bookmark in accent. Etymology block only renders when the entry has one.</div>
+    </div>
+  </div>
+
+  <!-- states -->
+  <div style="display: flex; flex-wrap: wrap; gap: 32px; margin-top: 48px; align-items: stretch;">
+    <!-- 2C loading -->
+    <div id="2c" style="flex-shrink: 0; width: 360px; display: flex; flex-direction: column;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.08em; background: #2A211B; color: #F3EAE2; padding: 3px 8px; border-radius: 4px;">2C</span><span style="font-size: 12.5px; color: #6F4E37;">Loading</span></div>
+      <div style="flex: 1; background: #FAF7F2; border-radius: 18px; padding: 30px 28px 0; box-shadow: 0 0 0 1px rgba(111,78,55,0.10); display: flex; flex-direction: column;">
+        <div style="display: flex; align-items: flex-end; gap: 12px;"><div style="height: 38px; width: 170px; border-radius: 6px; background: rgba(111,78,55,0.14);"></div><div style="height: 12px; width: 80px; border-radius: 4px; background: rgba(111,78,55,0.09);"></div></div>
+        <div style="height: 10px; width: 56px; border-radius: 4px; background: rgba(193,102,62,0.22); margin-top: 26px;"></div>
+        <div style="height: 11px; width: 100%; border-radius: 4px; background: rgba(111,78,55,0.08); margin-top: 16px;"></div>
+        <div style="height: 11px; width: 86%; border-radius: 4px; background: rgba(111,78,55,0.08); margin-top: 10px;"></div>
+        <div style="height: 11px; width: 64%; border-radius: 4px; background: rgba(111,78,55,0.08); margin-top: 10px;"></div>
+        <div style="margin-top: auto; padding: 16px 0; border-top: 1px solid rgba(111,78,55,0.08); font-size: 11.5px; color: #8B7362; margin-top: 40px;">Looking up · offline pack</div>
+      </div>
+    </div>
+
+    <!-- 2D not found -->
+    <div id="2d" style="flex-shrink: 0; width: 360px; display: flex; flex-direction: column;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.08em; background: #2A211B; color: #F3EAE2; padding: 3px 8px; border-radius: 4px;">2D</span><span style="font-size: 12.5px; color: #6F4E37;">Not found · near matches from pack</span></div>
+      <div style="flex: 1; background: #FAF7F2; border-radius: 18px; padding: 30px 28px 0; box-shadow: 0 0 0 1px rgba(111,78,55,0.10); display: flex; flex-direction: column;">
+        <div style="font-family: 'Fraunces', Georgia, serif; font-size: 23px; line-height: 1.25; color: #2A211B;">No entry for <span style="font-style: italic; color: #C1663E;">petrikor</span></div>
+        <div style="font-size: 13px; color: #8B7362; margin-top: 6px;">Did you mean</div>
+        <div style="display: flex; flex-direction: column; margin: 12px -12px 0;">
+          <sc-for list="{{ nearMatches }}" as="m" hint-placeholder-count="4">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; padding: 9px 12px; border-radius: 8px; cursor: pointer;" style-hover="background: rgba(111,78,55,0.06);"><span style="font-family: 'Fraunces', Georgia, serif; font-size: 17px; color: #2A211B;">{{ m.w }}</span><span style="font-size: 11.5px; font-style: italic; color: #8B7362;">{{ m.pos }}</span></div>
+          </sc-for>
+        </div>
+        <div style="margin-top: auto; padding: 14px 0; border-top: 1px solid rgba(111,78,55,0.08); margin-top: 18px;"><span style="display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; height: 24px; padding: 0 10px 0 9px; border-radius: 999px; background: oklch(0.935 0.03 140); color: oklch(0.40 0.06 140); font-size: 11.5px; font-weight: 500;"><span style="width: 6px; height: 6px; border-radius: 50%; background: oklch(0.58 0.09 140);"></span>Offline · Wiktionary</span></div>
+      </div>
+    </div>
+
+    <!-- 2E limit with fallback -->
+    <div id="2e" style="flex-shrink: 0; width: 360px; display: flex; flex-direction: column;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.08em; background: #2A211B; color: #F3EAE2; padding: 3px 8px; border-radius: 4px;">2E</span><span style="font-size: 12.5px; color: #6F4E37;">Limit reached · fell back to pack</span></div>
+      <div style="flex: 1; background: #FAF7F2; border-radius: 18px; overflow: hidden; box-shadow: 0 0 0 1px rgba(111,78,55,0.10); display: flex; flex-direction: column;">
+        <div style="display: flex; gap: 10px; align-items: flex-start; padding: 12px 18px; background: oklch(0.94 0.03 50); color: oklch(0.42 0.10 45); font-size: 12px; line-height: 1.5;"><svg style="flex-shrink: 0; margin-top: 2px;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v6M12 16.5v.5"></path></svg><span>Merriam-Webster daily limit reached. Showing the offline entry. Resets at midnight ET.</span></div>
+        <div style="padding: 22px 28px 0;">
+          <div style="display: flex; align-items: baseline; gap: 10px;"><span style="font-family: 'Fraunces', Georgia, serif; font-size: 34px; letter-spacing: -0.025em; line-height: 1; color: #2A211B;">sonder</span><span style="font-size: 13px; color: #8B7362; white-space: nowrap;">/ˈsɒndə/</span></div>
+          <div style="font-family: 'Fraunces', Georgia, serif; font-style: italic; font-size: 14px; color: #C1663E; margin-top: 14px;">noun</div>
+          <div style="font-size: 14px; line-height: 1.6; color: #2A211B; margin-top: 4px; text-wrap: pretty;">The realization that each passerby has a life as vivid and complex as one's own.</div>
+        </div>
+        <div style="margin-top: auto; padding: 14px 28px; border-top: 1px solid rgba(111,78,55,0.08); margin-top: 22px; display: flex; justify-content: space-between; align-items: center;"><span style="display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; height: 24px; padding: 0 10px 0 9px; border-radius: 999px; background: oklch(0.935 0.03 140); color: oklch(0.40 0.06 140); font-size: 11.5px; font-weight: 500;"><span style="width: 6px; height: 6px; border-radius: 50%; background: oklch(0.58 0.09 140);"></span>Offline · Wiktionary</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #8B7362;">1,000 / 1,000</span></div>
+      </div>
+    </div>
+
+    <!-- 2F limit, no pack -->
+    <div id="2f" style="flex-shrink: 0; width: 360px; display: flex; flex-direction: column;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.08em; background: #2A211B; color: #F3EAE2; padding: 3px 8px; border-radius: 4px;">2F</span><span style="font-size: 12.5px; color: #6F4E37;">Limit reached · no pack installed</span></div>
+      <div style="flex: 1; background: #FAF7F2; border-radius: 18px; padding: 30px 28px 0; box-shadow: 0 0 0 1px rgba(111,78,55,0.10); display: flex; flex-direction: column;">
+        <div style="width: 34px; height: 34px; border-radius: 50%; background: oklch(0.94 0.03 50); color: #C1663E; display: flex; align-items: center; justify-content: center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></div>
+        <div style="font-family: 'Fraunces', Georgia, serif; font-size: 23px; line-height: 1.25; color: #2A211B; margin-top: 16px;">Daily lookup limit reached</div>
+        <div style="font-size: 13.5px; line-height: 1.6; color: #6F4E37; margin-top: 8px; text-wrap: pretty;">The Merriam-Webster free tier allows 1,000 lookups a day. It refreshes at midnight ET. Install the offline pack to keep looking up words.</div>
+        <div style="margin-top: auto; padding: 14px 0 18px; display: flex; justify-content: space-between; align-items: center; margin-top: 22px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #8B7362;">1,000 / 1,000 today</span><button style="height: 32px; padding: 0 14px; border-radius: 9px; border: none; background: #C1663E; color: #FAF7F2; font-size: 12.5px; font-weight: 500; cursor: pointer;" style-hover="background: #A9542F;">Open settings</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2G badge spec -->
+  <div id="2g" style="flex-shrink: 0; margin-top: 48px; width: 1472px; max-width: 100%;">
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.08em; background: #2A211B; color: #F3EAE2; padding: 3px 8px; border-radius: 4px;">2G</span><span style="font-size: 12.5px; color: #6F4E37;">Source badge · spec</span></div>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-radius: 18px; overflow: hidden; box-shadow: 0 0 0 1px rgba(111,78,55,0.12);">
+      <div style="background: #FAF7F2; padding: 40px 44px; display: flex; flex-direction: column; gap: 22px;">
+        <div style="display: flex; align-items: center; gap: 24px;"><span style="display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; height: 24px; padding: 0 10px 0 9px; border-radius: 999px; background: oklch(0.935 0.03 140); color: oklch(0.40 0.06 140); font-size: 11.5px; font-weight: 500;"><span style="width: 6px; height: 6px; border-radius: 50%; background: oklch(0.58 0.09 140);"></span>Offline · Wiktionary</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #8B7362;">bg oklch(.935 .03 140) · ink oklch(.40 .06 140) · dot oklch(.58 .09 140)</span></div>
+        <div style="display: flex; align-items: center; gap: 24px;"><span style="display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; height: 24px; padding: 0 10px 0 9px; border-radius: 999px; background: oklch(0.94 0.03 50); color: oklch(0.45 0.11 45); font-size: 11.5px; font-weight: 500;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #C1663E;"></span>Merriam-Webster</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #8B7362;">bg oklch(.94 .03 50) · ink oklch(.45 .11 45) · dot #C1663E</span></div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.7; color: #8B7362; padding-top: 18px; border-top: 1px solid rgba(111,78,55,0.10);">Inter 500 11.5px · height 24 · radius full · padding 0 10 0 9 · dot 6px · gap 7</div>
+      </div>
+      <div style="background: #2A211B; padding: 40px 44px; display: flex; flex-direction: column; gap: 22px;">
+        <div style="display: flex; align-items: center; gap: 24px;"><span style="display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; height: 24px; padding: 0 10px 0 9px; border-radius: 999px; background: oklch(0.32 0.035 140); color: oklch(0.86 0.06 140); font-size: 11.5px; font-weight: 500;"><span style="width: 6px; height: 6px; border-radius: 50%; background: oklch(0.72 0.09 140);"></span>Offline · Wiktionary</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #A08A78;">bg oklch(.32 .035 140) · ink oklch(.86 .06 140)</span></div>
+        <div style="display: flex; align-items: center; gap: 24px;"><span style="display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; height: 24px; padding: 0 10px 0 9px; border-radius: 999px; background: oklch(0.33 0.05 45); color: oklch(0.86 0.07 55); font-size: 11.5px; font-weight: 500;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #D97A4E;"></span>Merriam-Webster</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #A08A78;">bg oklch(.33 .05 45) · ink oklch(.86 .07 55) · dot #D97A4E</span></div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.7; color: #A08A78; padding-top: 18px; border-top: 1px solid rgba(243,234,226,0.08);">Sage = local, always available. Terracotta = network source.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 03 MAIN WINDOW ================= -->
+<section>
+  <div style="display: flex; align-items: baseline; gap: 18px; padding-bottom: 18px; margin-bottom: 32px; border-bottom: 1px solid rgba(111,78,55,0.18);">
+    <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.14em; color: #C1663E;">03</span>
+    <span style="font-family: 'Fraunces', Georgia, serif; font-size: 30px; font-weight: 400; letter-spacing: -0.02em;">Main window</span>
+    <span style="font-size: 13.5px; color: #8B7362;">960 × 640 · sidebar + pane · opened from tray “Open Curious” · credit in footer</span>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 40px 32px;">
+
+    <!-- 3A LIGHT RECENTS -->
+    <div id="3a" style="flex-shrink: 0; width: 960px;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.08em; background: #2A211B; color: #F3EAE2; padding: 3px 8px; border-radius: 4px;">3A</span><span style="font-size: 12.5px; color: #6F4E37;">Light · Look up with recents</span></div>
+      <div style="height: 640px; border-radius: 12px; overflow: hidden; background: #FAF7F2; box-shadow: 0 30px 70px -40px rgba(42,33,27,0.55), 0 0 0 1px rgba(111,78,55,0.14); display: flex; flex-direction: column;">
+        <div style="height: 36px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding-left: 14px; background: #F4EEE5; border-bottom: 1px solid rgba(111,78,55,0.08);">
+          <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 14px; height: 14px; border-radius: 4px; background: #6F4E37; display: flex; align-items: center; justify-content: center;"><svg width="8" height="8" viewBox="0 0 24 24" fill="#FAF7F2"><path d="M4 3h13a3 3 0 013 3v15l-4-2-4 2-4-2-4 2V3z"></path></svg></div><span style="font-size: 11.5px; color: #6F4E37;">Curious Dictionary</span></div>
+          <div style="display: flex; color: #8B7362;"><div style="width: 46px; height: 36px; display: flex; align-items: center; justify-content: center;"><svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor"><line x1="0" y1="5" x2="10" y2="5"></line></svg></div><div style="width: 46px; height: 36px; display: flex; align-items: center; justify-content: center;"><svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor" fill="none"><rect x="0.5" y="0.5" width="9" height="9"></rect></svg></div><div style="width: 46px; height: 36px; display: flex; align-items: center; justify-content: center;"><svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor"><line x1="0" y1="0" x2="10" y2="10"></line><line x1="10" y1="0" x2="0" y2="10"></line></svg></div></div>
+        </div>
+        <div style="flex: 1; min-height: 0; display: grid; grid-template-columns: 212px minmax(0, 1fr);">
+          <div style="background: #F4EEE5; border-right: 1px solid rgba(111,78,55,0.08); padding: 22px 12px 14px; display: flex; flex-direction: column; gap: 2px;">
+            <div style="display: flex; align-items: center; gap: 10px; padding: 0 10px 24px;"><div style="width: 26px; height: 26px; border-radius: 7px; background: #6F4E37; display: flex; align-items: center; justify-content: center;"><svg width="13" height="13" viewBox="0 0 24 24" fill="#FAF7F2"><path d="M4 3h13a3 3 0 013 3v15l-4-2-4 2-4-2-4 2V3z"></path></svg></div><span style="font-family: 'Fraunces', Georgia, serif; font-size: 17px; letter-spacing: -0.01em; white-space: nowrap; color: #2A211B;">Curious <i style="color: #C1663E;">Dictionary</i></span></div>
+            <div style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: 8px; background: #FFFFFF; box-shadow: 0 1px 2px rgba(42,33,27,0.06), 0 0 0 1px rgba(111,78,55,0.08); font-size: 13px; font-weight: 500; color: #2A211B;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C1663E" stroke-width="1.7"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>Look up</div>
+            <div style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: 8px; font-size: 13px; color: #6F4E37;" style-hover="background: rgba(111,78,55,0.06);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3h12v18l-6-4-6 4z"></path></svg>Saved<span style="margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #8B7362;">12</span></div>
+            <div style="flex: 1;"></div>
+            <div style="margin: 0 4px 10px; padding: 12px; border-radius: 10px; border: 1px solid rgba(111,78,55,0.10);"><div style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 500; color: #2A211B;"><span style="width: 6px; height: 6px; border-radius: 50%; background: oklch(0.58 0.09 140);"></span>Offline pack</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #8B7362; margin-top: 4px;">412,806 words · EN</div></div>
+            <div style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: 8px; font-size: 13px; color: #6F4E37;" style-hover="background: rgba(111,78,55,0.06);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path><circle cx="16" cy="7" r="2"></circle><circle cx="10" cy="17" r="2"></circle></svg>Settings</div>
+            <div style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: 8px; font-size: 13px; color: #6F4E37;" style-hover="background: rgba(111,78,55,0.06);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v6M12 7.5v.5"></path></svg>About</div>
+          </div>
+          <div style="display: flex; flex-direction: column; min-height: 0;">
+            <div style="flex: 1; min-height: 0; overflow: hidden; padding: 32px 48px 0;">
+              <div style="display: flex; align-items: center; gap: 14px; height: 56px; padding: 0 18px 0 20px; background: #FFFFFF; border-radius: 14px; box-shadow: 0 1px 2px rgba(42,33,27,0.04), 0 0 0 1px rgba(111,78,55,0.14);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B7362" stroke-width="1.8"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg><span style="flex: 1; font-family: 'Fraunces', Georgia, serif; font-size: 20px; color: #B8A797;">Look up a word…</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 3px 7px; border-radius: 6px; background: #F4EEE5; color: #6F4E37;">/</span></div>
+              <div style="display: flex; flex-direction: column; gap: 18px; margin-top: 30px;">
+                <sc-for list="{{ recentGroups }}" as="g" hint-placeholder-count="3">
+                  <div>
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 4px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #8B7362;">{{ g.label }}</span><span style="flex: 1; height: 1px; background: rgba(111,78,55,0.10);"></span></div>
+                    <sc-for list="{{ g.items }}" as="r" hint-placeholder-count="2">
+                      <div style="display: flex; align-items: center; gap: 12px; height: 40px; padding: 0 12px; margin: 0 -12px; border-radius: 8px; cursor: pointer;" style-hover="background: rgba(111,78,55,0.06);">
+                        <span style="font-family: 'Fraunces', Georgia, serif; font-size: 18px; color: #2A211B;">{{ r.w }}</span>
+                        <sc-if value="{{ r.saved }}" hint-placeholder-val="{{ false }}"><svg width="11" height="11" viewBox="0 0 24 24" fill="#C1663E"><path d="M6 3h12v18l-6-4-6 4z"></path></svg></sc-if>
+                        <span style="flex: 1;"></span>
+                        <span style="font-size: 12px; color: #8B7362;">{{ r.t }}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="height: 38px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 48px; border-top: 1px solid rgba(111,78,55,0.08);"><a href="https://services.fetchmate.tech" style="font-size: 11px; color: #8B7362; display: flex; align-items: center; gap: 5px;" style-hover="color: #C1663E;">Built by Fetchmate Chief Technologies<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 17L17 7M9 7h8v8"></path></svg></a><span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #B8A797;">Offline first</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3B DARK RECENTS -->
+    <div id="3b" style="flex-shrink: 0; width: 960px;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.08em; background: #F3EAE2; color: #2A211B; padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(111,78,55,0.2);">3B</span><span style="font-size: 12.5px; color: #6F4E37;">Dark · Look up with recents</span></div>
+      <div style="height: 640px; border-radius: 12px; overflow: hidden; background: #2A211B; box-shadow: 0 30px 70px -36px rgba(0,0,0,0.8), 0 0 0 1px rgba(243,234,226,0.08); display: flex; flex-direction: column;">
+        <div style="height: 36px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding-left: 14px; background: #221A15; border-bottom: 1px solid rgba(243,234,226,0.06);">
+          <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 14px; height: 14px; border-radius: 4px; background: #D97A4E; display: flex; align-items: center; justify-content: center;"><svg width="8" height="8" viewBox="0 0 24 24" fill="#2A211B"><path d="M4 3h13a3 3 0 013 3v15l-4-2-4 2-4-2-4 2V3z"></path></svg></div><span style="font-size: 11.5px; color: #C4A891;">Curious Dictionary</span></div>
+          <div style="display: flex; color: #A08A78;"><div style="width: 46px; height: 36px; display: flex; align-items: center; justify-content: center;"><svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor"><line x1="0" y1="5" x2="10" y2="5"></line></svg></div><div style="width: 46px; height: 36px; display: flex; align-items: center; justify-content: center;"><svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor" fill="none"><rect x="0.5" y="0.5" width="9" height="9"></rect></svg></div><div style="width: 46px; height: 36px; display: flex; align-items: center; justify-content: center;"><svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor"><line x1="0" y1="0" x2="10" y2="10"></line><line x1="10" y1="0" x2="0" y2="10"></line></svg></div></div>
+        </div>
+        <div style="flex: 1; min-height: 0; display: grid; grid-template-columns: 212px minmax(0, 1fr);">
+          <div style="background: #241C16; border-right: 1px solid rgba(243,234,226,0.06); padding: 22px 12px 14px; display: flex; flex-direction: column; gap: 2px;">
+            <div style="display: flex; align-items: center; gap: 10px; padding: 0 10px 24px;"><div style="width: 26px; height: 26px; border-radius: 7px; background: #D97A4E; display: flex; align-items: center; justify-content: center;"><svg width="13" height="13" viewBox="0 0 24 24" fill="#2A211B"><path d="M4 3h13a3 3 0 013 3v15l-4-2-4 2-4-2-4 2V3z"></path></svg></div><span style="font-family: 'Fraunces', Georgia, serif; font-size: 17px; letter-spacing: -0.01em; white-space: nowrap; color: #F3EAE2;">Curious <i style="color: #D97A4E;">Dictionary</i></span></div>
+            <div style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: 8px; background: #3A2E25; box-shadow: 0 0 0 1px rgba(243,234,226,0.06); font-size: 13px; font-weight: 500; color: #F3EAE2;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#D97A4E" stroke-width="1.7"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>Look up</div>
+            <div style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: 8px; font-size: 13px; color: #C4A891;" style-hover="background: rgba(243,234,226,0.04);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3h12v18l-6-4-6 4z"></path></svg>Saved<span style="margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #A08A78;">12</span></div>
+            <div style="flex: 1;"></div>
+            <div style="margin: 0 4px 10px; padding: 12px; border-radius: 10px; border: 1px solid rgba(243,234,226,0.08);"><div style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 500; color: #F3EAE2;"><span style="width: 6px; height: 6px; border-radius: 50%; background: oklch(0.72 0.09 140);"></span>Offline pack</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #A08A78; margin-top: 4px;">412,806 words · EN</div></div>
+            <div style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: 8px; font-size: 13px; color: #C4A891;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path><circle cx="16" cy="7" r="2"></circle><circle cx="10" cy="17" r="2"></circle></svg>Settings</div>
+            <div style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: 8px; font-size: 13px; color: #C4A891;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v6M12 7.5v.5"></path></svg>About</div>
+          </div>
+          <div style="display: flex; flex-direction: column; min-height: 0;">
+            <div style="flex: 1; min-height: 0; overflow: hidden; padding: 32px 48px 0;">
+              <div style="display: flex; align-items: center; gap: 14px; height: 56px; padding: 0 18px 0 20px; background: #3A2E25; border-radius: 14px; box-shadow: 0 0 0 1px rgba(243,234,226,0.10);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A08A78" stroke-width="1.8"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg><span style="flex: 1; font-family: 'Fraunces', Georgia, serif; font-size: 20px; color: #8B7362;">Look up a word…</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 3px 7px; border-radius: 6px; background: #2A211B; color: #C4A891;">/</span></div>
+              <div style="display: flex; flex-direction: column; gap: 18px; margin-top: 30px;">
+                <sc-for list="{{ recentGroups }}" as="g" hint-placeholder-count="3">
+                  <div>
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 4px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #A08A78;">{{ g.label }}</span><span style="flex: 1; height: 1px; background: rgba(243,234,226,0.07);"></span></div>
+                    <sc-for list="{{ g.items }}" as="r" hint-placeholder-count="2">
+                      <div style="display: flex; align-items: center; gap: 12px; height: 40px; padding: 0 12px; margin: 0 -12px; border-radius: 8px; cursor: pointer;" style-hover="background: rgba(243,234,226,0.04);">
+                        <span style="font-family: 'Fraunces', Georgia, serif; font-size: 18px; color: #F3EAE2;">{{ r.w }}</span>
+                        <sc-if value="{{ r.saved }}" hint-placeholder-val="{{ false }}"><svg width="11" height="11" viewBox="0 0 24 24" fill="#D97A4E"><path d="M6 3h12v18l-6-4-6 4z"></path></svg></sc-if>
+                        <span style="flex: 1;"></span>
+                        <span style="font-size: 12px; color: #A08A78;">{{ r.t }}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="height: 38px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 48px; border-top: 1px solid rgba(243,234,226,0.06);"><a href="https://services.fetchmate.tech" style="font-size: 11px; color: #A08A78; display: flex; align-items: center; gap: 5px;" style-hover="color: #D97A4E;">Built by Fetchmate Chief Technologies<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 17L17 7M9 7h8v8"></path></svg></a><span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #6F5A4A;">Offline first</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3C LIGHT EMPTY -->
+    <div id="3c" style="flex-shrink: 0; width: 960px;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.08em; background: #2A211B; color: #F3EAE2; padding: 3px 8px; border-radius: 4px;">3C</span><span style="font-size: 12.5px; color: #6F4E37;">Light · first launch · no key needed</span></div>
+      <div style="height: 640px; border-radius: 12px; overflow: hidden; background: #FAF7F2; box-shadow: 0 30px 70px -40px rgba(42,33,27,0.55), 0 0 0 1px rgba(111,78,55,0.14); display: flex; flex-direction: column;">
+        <div style="height: 36px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding-left: 14px; background: #F4EEE5; border-bottom: 1px solid rgba(111,78,55,0.08);">
+          <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 14px; height: 14px; border-radius: 4px; background: #6F4E37; display: flex; align-items: center; justify-content: center;"><svg width="8" height="8" viewBox="0 0 24 24" fill="#FAF7F2"><path d="M4 3h13a3 3 0 013 3v15l-4-2-4 2-4-2-4 2V3z"></path></svg></div><span style="font-size: 11.5px; color: #6F4E37;">Curious Dictionary</span></div>
+          <div style="display: flex; color: #8B7362;"><div style="width: 46px; height: 36px; display: flex; align-items: center; justify-content: center;"><svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor"><line x1="0" y1="5" x2="10" y2="5"></line></svg></div><div style="width: 46px; height: 36px; display: flex; align-items: center; justify-content: center;"><svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor" fill="none"><rect x="0.5" y="0.5" width="9" height="9"></rect></svg></div><div style="width: 46px; height: 36px; display: flex; align-items: center; justify-content: center;"><svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor"><line x1="0" y1="0" x2="10" y2="10"></line><line x1="10" y1="0" x2="0" y2="10"></line></svg></div></div>
+        </div>
+        <div style="flex: 1; min-height: 0; display: grid; grid-template-columns: 212px minmax(0, 1fr);">
+          <div style="background: #F4EEE5; border-right: 1px solid rgba(111,78,55,0.08); padding: 22px 12px 14px; display: flex; flex-direction: column; gap: 2px;">
+            <div style="display: flex; align-items: center; gap: 10px; padding: 0 10px 24px;"><div style="width: 26px; height: 26px; border-radius: 7px; background: #6F4E37; display: flex; align-items: center; justify-content: center;"><svg width="13" height="13" viewBox="0 0 24 24" fill="#FAF7F2"><path d="M4 3h13a3 3 0 013 3v15l-4-2-4 2-4-2-4 2V3z"></path></svg></div><span style="font-family: 'Fraunces', Georgia, serif; font-size: 17px; letter-spacing: -0.01em; white-space: nowrap; color: #2A211B;">Curious <i style="color: #C1663E;">Dictionary</i></span></div>
+            <div style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: 8px; background: #FFFFFF; box-shadow: 0 1px 2px rgba(42,33,27,0.06), 0 0 0 1px rgba(111,78,55,0.08); font-size: 13px; font-weight: 500; color: #2A211B;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C1663E" stroke-width="1.7"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>Look up</div>
+            <div style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: 8px; font-size: 13px; color: #6F4E37;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3h12v18l-6-4-6 4z"></path></svg>Saved</div>
+            <div style="flex: 1;"></div>
+            <div style="margin: 0 4px 10px; padding: 12px; border-radius: 10px; border: 1px solid rgba(111,78,55,0.10);"><div style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 500; color: #2A211B;"><span style="width: 6px; height: 6px; border-radius: 50%; background: oklch(0.58 0.09 140);"></span>Offline pack</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #8B7362; margin-top: 4px;">412,806 words · EN</div></div>
+            <div style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: 8px; font-size: 13px; color: #6F4E37;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path><circle cx="16" cy="7" r="2"></circle><circle cx="10" cy="17" r="2"></circle></svg>Settings</div>
+            <div style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: 8px; font-size: 13px; color: #6F4E37;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v6M12 7.5v.5"></path></svg>About</div>
+          </div>
+          <div style="display: flex; flex-direction: column; min-height: 0;">
+            <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 64px; text-align: center;">
+              <div style="font-family: 'Fraunces', Georgia, serif; font-size: 44px; font-weight: 300; letter-spacing: -0.03em; line-height: 1.1; color: #2A211B;">Look up your <i style="color: #C1663E; font-weight: 400;">first word</i>.</div>
+              <div style="font-size: 14.5px; line-height: 1.6; color: #6F4E37; margin-top: 14px; max-width: 400px; text-wrap: pretty;">A quiet dictionary that lives in the corner of your screen. Works offline from the start.</div>
+              <div style="display: flex; align-items: center; gap: 14px; height: 56px; width: 100%; max-width: 460px; box-sizing: border-box; padding: 0 20px; margin-top: 36px; background: #FFFFFF; border-radius: 14px; box-shadow: 0 12px 30px -18px rgba(42,33,27,0.35), 0 0 0 1px rgba(111,78,55,0.14);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B7362" stroke-width="1.8"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg><span style="font-family: 'Fraunces', Georgia, serif; font-size: 19px; color: #B8A797;">Type a word to begin…</span></div>
+              <div style="display: flex; align-items: center; gap: 8px; margin-top: 20px; font-size: 12.5px; color: #8B7362;">or press<span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 3px 7px; border-radius: 6px; background: #F4EEE5; color: #6F4E37;">Ctrl ⇧ Space</span>from anywhere</div>
+            </div>
+            <div style="height: 38px; flex-shrink: 0; display: flex; align-items: center; padding: 0 48px; border-top: 1px solid rgba(111,78,55,0.08);"><a href="https://services.fetchmate.tech" style="font-size: 11px; color: #8B7362; display: flex; align-items: center; gap: 5px;" style-hover="color: #C1663E;">Built by Fetchmate Chief Technologies<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 17L17 7M9 7h8v8"></path></svg></a></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3D DARK EMPTY -->
+    <div id="3d" style="flex-shrink: 0; width: 960px;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.08em; background: #F3EAE2; color: #2A211B; padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(111,78,55,0.2);">3D</span><span style="font-size: 12.5px; color: #6F4E37;">Dark · first launch</span></div>
+      <div style="height: 640px; border-radius: 12px; overflow: hidden; background: #2A211B; box-shadow: 0 30px 70px -36px rgba(0,0,0,0.8), 0 0 0 1px rgba(243,234,226,0.08); display: flex; flex-direction: column;">
+        <div style="height: 36px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding-left: 14px; background: #221A15; border-bottom: 1px solid rgba(243,234,226,0.06);">
+          <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 14px; height: 14px; border-radius: 4px; background: #D97A4E; display: flex; align-items: center; justify-content: center;"><svg width="8" height="8" viewBox="0 0 24 24" fill="#2A211B"><path d="M4 3h13a3 3 0 013 3v15l-4-2-4 2-4-2-4 2V3z"></path></svg></div><span style="font-size: 11.5px; color: #C4A891;">Curious Dictionary</span></div>
+          <div style="display: flex; color: #A08A78;"><div style="width: 46px; height: 36px; display: flex; align-items: center; justify-content: center;"><svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor"><line x1="0" y1="5" x2="10" y2="5"></line></svg></div><div style="width: 46px; height: 36px; display: flex; align-items: center; justify-content: center;"><svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor" fill="none"><rect x="0.5" y="0.5" width="9" height="9"></rect></svg></div><div style="width: 46px; height: 36px; display: flex; align-items: center; justify-content: center;"><svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor"><line x1="0" y1="0" x2="10" y2="10"></line><line x1="10" y1="0" x2="0" y2="10"></line></svg></div></div>
+        </div>
+        <div style="flex: 1; min-height: 0; display: grid; grid-template-columns: 212px minmax(0, 1fr);">
+          <div style="background: #241C16; border-right: 1px solid rgba(243,234,226,0.06); padding: 22px 12px 14px; display: flex; flex-direction: column; gap: 2px;">
+            <div style="display: flex; align-items: center; gap: 10px; padding: 0 10px 24px;"><div style="width: 26px; height: 26px; border-radius: 7px; background: #D97A4E; display: flex; align-items: center; justify-content: center;"><svg width="13" height="13" viewBox="0 0 24 24" fill="#2A211B"><path d="M4 3h13a3 3 0 013 3v15l-4-2-4 2-4-2-4 2V3z"></path></svg></div><span style="font-family: 'Fraunces', Georgia, serif; font-size: 17px; letter-spacing: -0.01em; white-space: nowrap; color: #F3EAE2;">Curious <i style="color: #D97A4E;">Dictionary</i></span></div>
+            <div style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: 8px; background: #3A2E25; box-shadow: 0 0 0 1px rgba(243,234,226,0.06); font-size: 13px; font-weight: 500; color: #F3EAE2;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#D97A4E" stroke-width="1.7"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>Look up</div>
+            <div style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: 8px; font-size: 13px; color: #C4A891;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3h12v18l-6-4-6 4z"></path></svg>Saved</div>
+            <div style="flex: 1;"></div>
+            <div style="margin: 0 4px 10px; padding: 12px; border-radius: 10px; border: 1px solid rgba(243,234,226,0.08);"><div style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 500; color: #F3EAE2;"><span style="width: 6px; height: 6px; border-radius: 50%; background: oklch(0.72 0.09 140);"></span>Offline pack</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #A08A78; margin-top: 4px;">412,806 words · EN</div></div>
+            <div style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: 8px; font-size: 13px; color: #C4A891;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path><circle cx="16" cy="7" r="2"></circle><circle cx="10" cy="17" r="2"></circle></svg>Settings</div>
+            <div style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: 8px; font-size: 13px; color: #C4A891;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v6M12 7.5v.5"></path></svg>About</div>
+          </div>
+          <div style="display: flex; flex-direction: column; min-height: 0;">
+            <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 64px; text-align: center;">
+              <div style="font-family: 'Fraunces', Georgia, serif; font-size: 44px; font-weight: 300; letter-spacing: -0.03em; line-height: 1.1; color: #F3EAE2;">Look up your <i style="color: #D97A4E; font-weight: 400;">first word</i>.</div>
+              <div style="font-size: 14.5px; line-height: 1.6; color: #C4A891; margin-top: 14px; max-width: 400px; text-wrap: pretty;">A quiet dictionary that lives in the corner of your screen. Works offline from the start.</div>
+              <div style="display: flex; align-items: center; gap: 14px; height: 56px; width: 100%; max-width: 460px; box-sizing: border-box; padding: 0 20px; margin-top: 36px; background: #3A2E25; border-radius: 14px; box-shadow: 0 12px 30px -16px rgba(0,0,0,0.7), 0 0 0 1px rgba(243,234,226,0.10);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A08A78" stroke-width="1.8"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg><span style="font-family: 'Fraunces', Georgia, serif; font-size: 19px; color: #8B7362;">Type a word to begin…</span></div>
+              <div style="display: flex; align-items: center; gap: 8px; margin-top: 20px; font-size: 12.5px; color: #A08A78;">or press<span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 3px 7px; border-radius: 6px; background: #3A2E25; color: #C4A891;">Ctrl ⇧ Space</span>from anywhere</div>
+            </div>
+            <div style="height: 38px; flex-shrink: 0; display: flex; align-items: center; padding: 0 48px; border-top: 1px solid rgba(243,234,226,0.06);"><a href="https://services.fetchmate.tech" style="font-size: 11px; color: #A08A78; display: flex; align-items: center; gap: 5px;" style-hover="color: #D97A4E;">Built by Fetchmate Chief Technologies<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 17L17 7M9 7h8v8"></path></svg></a></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3E LIGHT RESULT -->
+    <div id="3e" style="flex-shrink: 0; width: 960px;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.08em; background: #2A211B; color: #F3EAE2; padding: 3px 8px; border-radius: 4px;">3E</span><span style="font-size: 12.5px; color: #6F4E37;">Light · result view · Saved + Copy</span></div>
+      <div style="height: 640px; border-radius: 12px; overflow: hidden; background: #FAF7F2; box-shadow: 0 30px 70px -40px rgba(42,33,27,0.55), 0 0 0 1px rgba(111,78,55,0.14); display: flex; flex-direction: column;">
+        <div style="height: 36px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding-left: 14px; background: #F4EEE5; border-bottom: 1px solid rgba(111,78,55,0.08);">
+          <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 14px; height: 14px; border-radius: 4px; background: #6F4E37; display: flex; align-items: center; justify-content: center;"><svg width="8" height="8" viewBox="0 0 24 24" fill="#FAF7F2"><path d="M4 3h13a3 3 0 013 3v15l-4-2-4 2-4-2-4 2V3z"></path></svg></div><span style="font-size: 11.5px; color: #6F4E37;">Curious Dictionary</span></div>
+          <div style="display: flex; color: #8B7362;"><div style="width: 46px; height: 36px; display: flex; align-items: center; justify-content: center;"><svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor"><line x1="0" y1="5" x2="10" y2="5"></line></svg></div><div style="width: 46px; height: 36px; display: flex; align-items: center; justify-content: center;"><svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor" fill="none"><rect x="0.5" y="0.5" width="9" height="9"></rect></svg></div><div style="width: 46px; height: 36px; display: flex; align-items: center; justify-content: center;"><svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor"><line x1="0" y1="0" x2="10" y2="10"></line><line x1="10" y1="0" x2="0" y2="10"></line></svg></div></div>
+        </div>
+        <div style="flex: 1; min-height: 0; display: grid; grid-template-columns: 212px minmax(0, 1fr);">
+          <div style="background: #F4EEE5; border-right: 1px solid rgba(111,78,55,0.08); padding: 22px 12px 14px; display: flex; flex-direction: column; gap: 2px;">
+            <div style="display: flex; align-items: center; gap: 10px; padding: 0 10px 24px;"><div style="width: 26px; height: 26px; border-radius: 7px; background: #6F4E37; display: flex; align-items: center; justify-content: center;"><svg width="13" height="13" viewBox="0 0 24 24" fill="#FAF7F2"><path d="M4 3h13a3 3 0 013 3v15l-4-2-4 2-4-2-4 2V3z"></path></svg></div><span style="font-family: 'Fraunces', Georgia, serif; font-size: 17px; letter-spacing: -0.01em; white-space: nowrap; color: #2A211B;">Curious <i style="color: #C1663E;">Dictionary</i></span></div>
+            <div style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: 8px; background: #FFFFFF; box-shadow: 0 1px 2px rgba(42,33,27,0.06), 0 0 0 1px rgba(111,78,55,0.08); font-size: 13px; font-weight: 500; color: #2A211B;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C1663E" stroke-width="1.7"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>Look up</div>
+            <div style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: 8px; font-size: 13px; color: #6F4E37;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3h12v18l-6-4-6 4z"></path></svg>Saved<span style="margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #8B7362;">12</span></div>
+            <div style="flex: 1;"></div>
+            <div style="margin: 0 4px 10px; padding: 12px; border-radius: 10px; border: 1px solid rgba(111,78,55,0.10);"><div style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 500; color: #2A211B;"><span style="width: 6px; height: 6px; border-radius: 50%; background: oklch(0.58 0.09 140);"></span>Offline pack</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #8B7362; margin-top: 4px;">412,806 words · EN</div></div>
+            <div style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: 8px; font-size: 13px; color: #6F4E37;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path><circle cx="16" cy="7" r="2"></circle><circle cx="10" cy="17" r="2"></circle></svg>Settings</div>
+            <div style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: 8px; font-size: 13px; color: #6F4E37;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v6M12 7.5v.5"></path></svg>About</div>
+          </div>
+          <div style="display: flex; flex-direction: column; min-height: 0;">
+            <div style="flex: 1; min-height: 0; overflow: hidden; padding: 32px 48px 0;">
+              <div style="display: flex; align-items: center; gap: 14px; height: 48px; padding: 0 12px 0 18px; background: #FFFFFF; border-radius: 12px; box-shadow: 0 0 0 1px rgba(111,78,55,0.14);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B7362" stroke-width="1.8"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg><span style="flex: 1; font-family: 'Fraunces', Georgia, serif; font-size: 18px; color: #2A211B;">petrichor</span><div style="width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #8B7362;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"></path></svg></div></div>
+              <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-top: 36px;">
+                <div>
+                  <div style="font-family: 'Fraunces', Georgia, serif; font-size: 64px; font-weight: 300; letter-spacing: -0.04em; line-height: 0.95; color: #2A211B;">petrichor</div>
+                  <div style="display: flex; align-items: center; gap: 14px; margin-top: 14px;"><span style="font-size: 14px; color: #8B7362; white-space: nowrap;">/ˈpɛtɹɪkɔː(ɹ)/</span><span style="width: 3px; height: 3px; border-radius: 50%; background: #B8A797;"></span><span style="display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; height: 24px; padding: 0 10px 0 9px; border-radius: 999px; background: oklch(0.935 0.03 140); color: oklch(0.40 0.06 140); font-size: 11.5px; font-weight: 500;"><span style="width: 6px; height: 6px; border-radius: 50%; background: oklch(0.58 0.09 140);"></span>Offline · Wiktionary</span></div>
+                </div>
+                <div style="display: flex; gap: 8px; padding-bottom: 4px;">
+                  <button style="display: flex; align-items: center; gap: 7px; height: 34px; padding: 0 13px; border-radius: 9px; border: 1px solid rgba(111,78,55,0.18); background: #FFFFFF; color: #2A211B; font-size: 12.5px; font-weight: 500; cursor: pointer;" style-hover="border-color: rgba(111,78,55,0.35);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="8" y="8" width="12" height="12" rx="2"></rect><path d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2"></path></svg>Copy</button>
+                  <button style="display: flex; align-items: center; gap: 7px; height: 34px; padding: 0 13px; border-radius: 9px; border: 1px solid #C1663E; background: oklch(0.95 0.025 50); color: #A9542F; font-size: 12.5px; font-weight: 500; cursor: pointer;"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 3h12v18l-6-4-6 4z"></path></svg>Saved</button>
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 12px; margin-top: 32px;"><span style="font-family: 'Fraunces', Georgia, serif; font-style: italic; font-size: 16px; color: #C1663E;">noun</span><span style="flex: 1; height: 1px; background: rgba(111,78,55,0.12);"></span></div>
+              <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 16px; max-width: 600px;">
+                <div style="display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 8px;"><span style="font-family: 'Fraunces', Georgia, serif; font-size: 16px; color: #C1663E;">1</span><div><div style="font-size: 15px; line-height: 1.65; color: #2A211B; text-wrap: pretty;">The distinctive scent, usually described as pleasant, that accompanies the first rain after a long warm dry spell.</div><div style="font-family: 'Fraunces', Georgia, serif; font-style: italic; font-size: 14.5px; line-height: 1.55; color: #6F4E37; margin-top: 6px;">“The petrichor rose from the pavement after the first summer storm.”</div></div></div>
+                <div style="display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 8px;"><span style="font-family: 'Fraunces', Georgia, serif; font-size: 16px; color: #C1663E;">2</span><div style="font-size: 15px; line-height: 1.65; color: #2A211B;">The oil exuded by plants during dry periods, absorbed by rocks and released by rain.</div></div>
+              </div>
+              <div style="display: grid; grid-template-columns: 90px minmax(0, 1fr); gap: 16px; margin-top: 28px; padding-top: 18px; border-top: 1px solid rgba(111,78,55,0.10); max-width: 634px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #8B7362; padding-top: 3px;">Origin</span><span style="font-family: 'Fraunces', Georgia, serif; font-size: 14.5px; line-height: 1.55; color: #6F4E37;">Coined in 1964 by Isabel Bear and Richard Thomas, from <i>petro-</i> (“stone”) + <i>ichor</i>.</span></div>
+            </div>
+            <div style="height: 38px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 48px; border-top: 1px solid rgba(111,78,55,0.08);"><a href="https://services.fetchmate.tech" style="font-size: 11px; color: #8B7362; display: flex; align-items: center; gap: 5px;" style-hover="color: #C1663E;">Built by Fetchmate Chief Technologies<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 17L17 7M9 7h8v8"></path></svg></a><span style="font-size: 11px; color: #B8A797;">Wiktionary · CC BY-SA 4.0</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3F DARK AUTOCOMPLETE -->
+    <div id="3f" style="flex-shrink: 0; width: 960px;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.08em; background: #F3EAE2; color: #2A211B; padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(111,78,55,0.2);">3F</span><span style="font-size: 12.5px; color: #6F4E37;">Dark · autocomplete from pack prefix index</span></div>
+      <div style="height: 640px; border-radius: 12px; overflow: hidden; background: #2A211B; box-shadow: 0 30px 70px -36px rgba(0,0,0,0.8), 0 0 0 1px rgba(243,234,226,0.08); display: flex; flex-direction: column;">
+        <div style="height: 36px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding-left: 14px; background: #221A15; border-bottom: 1px solid rgba(243,234,226,0.06);">
+          <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 14px; height: 14px; border-radius: 4px; background: #D97A4E; display: flex; align-items: center; justify-content: center;"><svg width="8" height="8" viewBox="0 0 24 24" fill="#2A211B"><path d="M4 3h13a3 3 0 013 3v15l-4-2-4 2-4-2-4 2V3z"></path></svg></div><span style="font-size: 11.5px; color: #C4A891;">Curious Dictionary</span></div>
+          <div style="display: flex; color: #A08A78;"><div style="width: 46px; height: 36px; display: flex; align-items: center; justify-content: center;"><svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor"><line x1="0" y1="5" x2="10" y2="5"></line></svg></div><div style="width: 46px; height: 36px; display: flex; align-items: center; justify-content: center;"><svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor" fill="none"><rect x="0.5" y="0.5" width="9" height="9"></rect></svg></div><div style="width: 46px; height: 36px; display: flex; align-items: center; justify-content: center;"><svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor"><line x1="0" y1="0" x2="10" y2="10"></line><line x1="10" y1="0" x2="0" y2="10"></line></svg></div></div>
+        </div>
+        <div style="flex: 1; min-height: 0; display: grid; grid-template-columns: 212px minmax(0, 1fr);">
+          <div style="background: #241C16; border-right: 1px solid rgba(243,234,226,0.06); padding: 22px 12px 14px; display: flex; flex-direction: column; gap: 2px;">
+            <div style="display: flex; align-items: center; gap: 10px; padding: 0 10px 24px;"><div style="width: 26px; height: 26px; border-radius: 7px; background: #D97A4E; display: flex; align-items: center; justify-content: center;"><svg width="13" height="13" viewBox="0 0 24 24" fill="#2A211B"><path d="M4 3h13a3 3 0 013 3v15l-4-2-4 2-4-2-4 2V3z"></path></svg></div><span style="font-family: 'Fraunces', Georgia, serif; font-size: 17px; letter-spacing: -0.01em; white-space: nowrap; color: #F3EAE2;">Curious <i style="color: #D97A4E;">Dictionary</i></span></div>
+            <div style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: 8px; background: #3A2E25; box-shadow: 0 0 0 1px rgba(243,234,226,0.06); font-size: 13px; font-weight: 500; color: #F3EAE2;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#D97A4E" stroke-width="1.7"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>Look up</div>
+            <div style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: 8px; font-size: 13px; color: #C4A891;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3h12v18l-6-4-6 4z"></path></svg>Saved<span style="margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #A08A78;">12</span></div>
+            <div style="flex: 1;"></div>
+            <div style="margin: 0 4px 10px; padding: 12px; border-radius: 10px; border: 1px solid rgba(243,234,226,0.08);"><div style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 500; color: #F3EAE2;"><span style="width: 6px; height: 6px; border-radius: 50%; background: oklch(0.72 0.09 140);"></span>Offline pack</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #A08A78; margin-top: 4px;">412,806 words · EN</div></div>
+            <div style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: 8px; font-size: 13px; color: #C4A891;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path><circle cx="16" cy="7" r="2"></circle><circle cx="10" cy="17" r="2"></circle></svg>Settings</div>
+            <div style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: 8px; font-size: 13px; color: #C4A891;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v6M12 7.5v.5"></path></svg>About</div>
+          </div>
+          <div style="display: flex; flex-direction: column; min-height: 0;">
+            <div style="flex: 1; min-height: 0; overflow: hidden; padding: 32px 48px 0; position: relative;">
+              <div style="position: relative; z-index: 2; border-radius: 14px; background: #3A2E25; box-shadow: 0 30px 60px -20px rgba(0,0,0,0.7), 0 0 0 1px rgba(217,122,78,0.45);">
+                <div style="display: flex; align-items: center; gap: 14px; height: 56px; padding: 0 18px 0 20px; border-bottom: 1px solid rgba(243,234,226,0.07);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C4A891" stroke-width="1.8"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg><span style="flex: 1; display: flex; align-items: center; font-family: 'Fraunces', Georgia, serif; font-size: 20px; color: #F3EAE2;">lim<span style="color: #6F5A4A;">inal</span><span style="width: 2px; height: 22px; background: #D97A4E; margin-left: -34px; border-radius: 1px;"></span></span><span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #A08A78;">tab to complete</span></div>
+                <div style="padding: 6px;">
+                  <sc-for list="{{ suggestions }}" as="s" hint-placeholder-count="6">
+                    <sc-if value="{{ s.active }}" hint-placeholder-val="{{ false }}">
+                      <div style="display: flex; align-items: baseline; gap: 12px; height: 40px; padding: 0 14px; border-radius: 9px; background: #4A3B30; align-items: center;"><span style="font-family: 'Fraunces', Georgia, serif; font-size: 18px; color: #F3EAE2;"><b style="font-weight: 600;">lim</b>{{ s.rest }}</span><span style="font-size: 12px; font-style: italic; color: #C4A891;">{{ s.pos }}</span><span style="flex: 1;"></span><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #D97A4E;">↵</span></div>
+                    </sc-if>
+                    <sc-if value="{{ s.idle }}" hint-placeholder-val="{{ true }}">
+                      <div style="display: flex; gap: 12px; height: 40px; padding: 0 14px; border-radius: 9px; align-items: center;" style-hover="background: rgba(243,234,226,0.04);"><span style="font-family: 'Fraunces', Georgia, serif; font-size: 18px; color: #C4A891;"><b style="font-weight: 600; color: #F3EAE2;">lim</b>{{ s.rest }}</span><span style="font-size: 12px; font-style: italic; color: #A08A78;">{{ s.pos }}</span></div>
+                    </sc-if>
+                  </sc-for>
+                </div>
+                <div style="display: flex; gap: 18px; padding: 10px 20px; border-top: 1px solid rgba(243,234,226,0.07); font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #A08A78;"><span>↑↓ move</span><span>↵ open</span><span>esc clear</span><span style="margin-left: auto; color: oklch(0.72 0.09 140);">from offline pack</span></div>
+              </div>
+              <div style="margin-top: 26px; opacity: 0.35;">
+                <div style="display: flex; align-items: center; gap: 12px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #A08A78;">Today</span><span style="flex: 1; height: 1px; background: rgba(243,234,226,0.07);"></span></div>
+                <div style="font-family: 'Fraunces', Georgia, serif; font-size: 18px; color: #F3EAE2; margin-top: 12px;">petrichor</div>
+              </div>
+            </div>
+            <div style="height: 38px; flex-shrink: 0; display: flex; align-items: center; padding: 0 48px; border-top: 1px solid rgba(243,234,226,0.06);"><a href="https://services.fetchmate.tech" style="font-size: 11px; color: #A08A78; display: flex; align-items: center; gap: 5px;" style-hover="color: #D97A4E;">Built by Fetchmate Chief Technologies<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 17L17 7M9 7h8v8"></path></svg></a></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3G LIGHT SAVED -->
+    <div id="3g" style="flex-shrink: 0; width: 960px;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.08em; background: #2A211B; color: #F3EAE2; padding: 3px 8px; border-radius: 4px;">3G</span><span style="font-size: 12.5px; color: #6F4E37;">Light · Saved · remove on row</span></div>
+      <div style="height: 640px; border-radius: 12px; overflow: hidden; background: #FAF7F2; box-shadow: 0 30px 70px -40px rgba(42,33,27,0.55), 0 0 0 1px rgba(111,78,55,0.14); display: flex; flex-direction: column;">
+        <div style="height: 36px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding-left: 14px; background: #F4EEE5; border-bottom: 1px solid rgba(111,78,55,0.08);">
+          <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 14px; height: 14px; border-radius: 4px; background: #6F4E37; display: flex; align-items: center; justify-content: center;"><svg width="8" height="8" viewBox="0 0 24 24" fill="#FAF7F2"><path d="M4 3h13a3 3 0 013 3v15l-4-2-4 2-4-2-4 2V3z"></path></svg></div><span style="font-size: 11.5px; color: #6F4E37;">Curious Dictionary</span></div>
+          <div style="display: flex; color: #8B7362;"><div style="width: 46px; height: 36px; display: flex; align-items: center; justify-content: center;"><svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor"><line x1="0" y1="5" x2="10" y2="5"></line></svg></div><div style="width: 46px; height: 36px; display: flex; align-items: center; justify-content: center;"><svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor" fill="none"><rect x="0.5" y="0.5" width="9" height="9"></rect></svg></div><div style="width: 46px; height: 36px; display: flex; align-items: center; justify-content: center;"><svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor"><line x1="0" y1="0" x2="10" y2="10"></line><line x1="10" y1="0" x2="0" y2="10"></line></svg></div></div>
+        </div>
+        <div style="flex: 1; min-height: 0; display: grid; grid-template-columns: 212px minmax(0, 1fr);">
+          <div style="background: #F4EEE5; border-right: 1px solid rgba(111,78,55,0.08); padding: 22px 12px 14px; display: flex; flex-direction: column; gap: 2px;">
+            <div style="display: flex; align-items: center; gap: 10px; padding: 0 10px 24px;"><div style="width: 26px; height: 26px; border-radius: 7px; background: #6F4E37; display: flex; align-items: center; justify-content: center;"><svg width="13" height="13" viewBox="0 0 24 24" fill="#FAF7F2"><path d="M4 3h13a3 3 0 013 3v15l-4-2-4 2-4-2-4 2V3z"></path></svg></div><span style="font-family: 'Fraunces', Georgia, serif; font-size: 17px; letter-spacing: -0.01em; white-space: nowrap; color: #2A211B;">Curious <i style="color: #C1663E;">Dictionary</i></span></div>
+            <div style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: 8px; font-size: 13px; color: #6F4E37;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>Look up</div>
+            <div style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: 8px; background: #FFFFFF; box-shadow: 0 1px 2px rgba(42,33,27,0.06), 0 0 0 1px rgba(111,78,55,0.08); font-size: 13px; font-weight: 500; color: #2A211B;"><svg width="15" height="15" viewBox="0 0 24 24" fill="#C1663E"><path d="M6 3h12v18l-6-4-6 4z"></path></svg>Saved<span style="margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #8B7362;">12</span></div>
+            <div style="flex: 1;"></div>
+            <div style="margin: 0 4px 10px; padding: 12px; border-radius: 10px; border: 1px solid rgba(111,78,55,0.10);"><div style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 500; color: #2A211B;"><span style="width: 6px; height: 6px; border-radius: 50%; background: oklch(0.58 0.09 140);"></span>Offline pack</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #8B7362; margin-top: 4px;">412,806 words · EN</div></div>
+            <div style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: 8px; font-size: 13px; color: #6F4E37;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path><circle cx="16" cy="7" r="2"></circle><circle cx="10" cy="17" r="2"></circle></svg>Settings</div>
+            <div style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: 8px; font-size: 13px; color: #6F4E37;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v6M12 7.5v.5"></path></svg>About</div>
+          </div>
+          <div style="display: flex; flex-direction: column; min-height: 0;">
+            <div style="flex: 1; min-height: 0; overflow: hidden; padding: 36px 48px 0;">
+              <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 20px;">
+                <div style="display: flex; align-items: baseline; gap: 14px;"><span style="font-family: 'Fraunces', Georgia, serif; font-size: 38px; font-weight: 300; letter-spacing: -0.03em; line-height: 1; color: #2A211B;">Saved</span><span style="font-size: 13px; color: #8B7362;">12 words</span></div>
+                <div style="display: flex; padding: 3px; border-radius: 9px; background: #F4EEE5; box-shadow: inset 0 0 0 1px rgba(111,78,55,0.08);"><span style="padding: 5px 12px; border-radius: 7px; background: #FFFFFF; font-size: 12px; font-weight: 500; color: #2A211B; box-shadow: 0 1px 2px rgba(42,33,27,0.08);">Recent</span><span style="padding: 5px 12px; font-size: 12px; color: #8B7362;">A–Z</span></div>
+              </div>
+              <div style="margin-top: 26px; display: flex; flex-direction: column;">
+                <sc-for list="{{ saved }}" as="s" hint-placeholder-count="6">
+                  <div style="display: grid; grid-template-columns: 168px minmax(0, 1fr) 64px 28px; gap: 16px; align-items: center; height: 58px; padding: 0 12px; margin: 0 -12px; border-radius: 10px; border-bottom: 1px solid rgba(111,78,55,0.07); cursor: pointer;" style-hover="background: #FFFFFF;">
+                    <span style="font-family: 'Fraunces', Georgia, serif; font-size: 19px; color: #2A211B;">{{ s.w }}</span>
+                    <span style="font-size: 13px; color: #6F4E37; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ s.g }}</span>
+                    <span style="font-size: 11.5px; color: #8B7362; text-align: right;">{{ s.d }}</span>
+                    <span title="Remove" style="width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; color: #B8A797;" style-hover="background: oklch(0.94 0.03 50); color: #C1663E;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"></path></svg></span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="height: 38px; flex-shrink: 0; display: flex; align-items: center; padding: 0 48px; border-top: 1px solid rgba(111,78,55,0.08);"><a href="https://services.fetchmate.tech" style="font-size: 11px; color: #8B7362; display: flex; align-items: center; gap: 5px;" style-hover="color: #C1663E;">Built by Fetchmate Chief Technologies<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 17L17 7M9 7h8v8"></path></svg></a></div>
+          </div>
+        </div>
+      </div>
+      <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.6; color: #8B7362; margin-top: 12px;">Store words only. Glosses are read live from the pack; MW-only words show no gloss.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 04 SETTINGS ================= -->
+<section>
+  <div style="display: flex; align-items: baseline; gap: 18px; padding-bottom: 18px; margin-bottom: 32px; border-bottom: 1px solid rgba(111,78,55,0.18);">
+    <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.14em; color: #C1663E;">04</span>
+    <span style="font-family: 'Fraunces', Georgia, serif; font-size: 30px; font-weight: 400; letter-spacing: -0.02em;">Settings</span>
+    <span style="font-size: 13.5px; color: #8B7362;">Main window pane · dictionary source + pack status · key is optional</span>
+  </div>
+  <div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start;">
+
+    <!-- 4A -->
+    <div id="4a" style="flex-shrink: 0; width: 960px;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.08em; background: #2A211B; color: #F3EAE2; padding: 3px 8px; border-radius: 4px;">4A</span><span style="font-size: 12.5px; color: #6F4E37;">Light · pack installed · offline first</span></div>
+      <div style="border-radius: 12px; overflow: hidden; background: #FAF7F2; box-shadow: 0 30px 70px -40px rgba(42,33,27,0.55), 0 0 0 1px rgba(111,78,55,0.14); display: flex; flex-direction: column;">
+        <div style="height: 36px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding-left: 14px; background: #F4EEE5; border-bottom: 1px solid rgba(111,78,55,0.08);">
+          <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 14px; height: 14px; border-radius: 4px; background: #6F4E37; display: flex; align-items: center; justify-content: center;"><svg width="8" height="8" viewBox="0 0 24 24" fill="#FAF7F2"><path d="M4 3h13a3 3 0 013 3v15l-4-2-4 2-4-2-4 2V3z"></path></svg></div><span style="font-size: 11.5px; color: #6F4E37;">Curious Dictionary</span></div>
+          <div style="display: flex; color: #8B7362;"><div style="width: 46px; height: 36px; display: flex; align-items: center; justify-content: center;"><svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor"><line x1="0" y1="5" x2="10" y2="5"></line></svg></div><div style="width: 46px; height: 36px; display: flex; align-items: center; justify-content: center;"><svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor" fill="none"><rect x="0.5" y="0.5" width="9" height="9"></rect></svg></div><div style="width: 46px; height: 36px; display: flex; align-items: center; justify-content: center;"><svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor"><line x1="0" y1="0" x2="10" y2="10"></line><line x1="10" y1="0" x2="0" y2="10"></line></svg></div></div>
+        </div>
+        <div style="display: grid; grid-template-columns: 212px minmax(0, 1fr);">
+          <div style="background: #F4EEE5; border-right: 1px solid rgba(111,78,55,0.08); padding: 22px 12px 14px; display: flex; flex-direction: column; gap: 2px;">
+            <div style="display: flex; align-items: center; gap: 10px; padding: 0 10px 24px;"><div style="width: 26px; height: 26px; border-radius: 7px; background: #6F4E37; display: flex; align-items: center; justify-content: center;"><svg width="13" height="13" viewBox="0 0 24 24" fill="#FAF7F2"><path d="M4 3h13a3 3 0 013 3v15l-4-2-4 2-4-2-4 2V3z"></path></svg></div><span style="font-family: 'Fraunces', Georgia, serif; font-size: 17px; letter-spacing: -0.01em; white-space: nowrap; color: #2A211B;">Curious <i style="color: #C1663E;">Dictionary</i></span></div>
+            <div style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: 8px; font-size: 13px; color: #6F4E37;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>Look up</div>
+            <div style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: 8px; font-size: 13px; color: #6F4E37;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3h12v18l-6-4-6 4z"></path></svg>Saved<span style="margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #8B7362;">12</span></div>
+            <div style="flex: 1;"></div>
+            <div style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: 8px; background: #FFFFFF; box-shadow: 0 1px 2px rgba(42,33,27,0.06), 0 0 0 1px rgba(111,78,55,0.08); font-size: 13px; font-weight: 500; color: #2A211B;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C1663E" stroke-width="1.7"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path><circle cx="16" cy="7" r="2"></circle><circle cx="10" cy="17" r="2"></circle></svg>Settings</div>
+            <div style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: 8px; font-size: 13px; color: #6F4E37;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v6M12 7.5v.5"></path></svg>About</div>
+          </div>
+          <div style="display: flex; flex-direction: column;">
+            <div style="padding: 36px 48px 40px; max-width: 640px;">
+              <div style="font-family: 'Fraunces', Georgia, serif; font-size: 38px; font-weight: 300; letter-spacing: -0.03em; line-height: 1; color: #2A211B;">Settings</div>
+
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #8B7362; margin: 34px 0 10px;">Dictionary</div>
+              <div style="background: #FFFFFF; border-radius: 14px; box-shadow: 0 0 0 1px rgba(111,78,55,0.11);">
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 18px 20px; border-bottom: 1px solid rgba(111,78,55,0.08);">
+                  <div><div style="font-size: 13.5px; font-weight: 500; color: #2A211B;">Dictionary source</div><div style="font-size: 12px; line-height: 1.5; color: #8B7362; margin-top: 3px; max-width: 260px;">Check the offline pack first, then Merriam-Webster if it has no entry.</div></div>
+                  <div style="display: flex; padding: 3px; border-radius: 9px; background: #F4EEE5; box-shadow: inset 0 0 0 1px rgba(111,78,55,0.08); flex-shrink: 0;"><span style="padding: 6px 13px; border-radius: 7px; background: #FFFFFF; font-size: 12.5px; font-weight: 500; color: #2A211B; box-shadow: 0 1px 2px rgba(42,33,27,0.08);">Offline first</span><span style="padding: 6px 13px; font-size: 12.5px; color: #8B7362;">Online first</span></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 16px 20px; border-bottom: 1px solid rgba(111,78,55,0.08);">
+                  <div style="display: flex; gap: 12px; align-items: flex-start;"><span style="width: 8px; height: 8px; border-radius: 50%; background: oklch(0.58 0.09 140); margin-top: 6px; box-shadow: 0 0 0 4px oklch(0.94 0.03 140);"></span><div><div style="font-size: 13.5px; font-weight: 500; color: #2A211B;">English pack</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #8B7362; margin-top: 4px;">curious-en · 412,806 entries · built 2026-10-12</div></div></div>
+                  <span style="font-size: 12px; font-weight: 500; color: oklch(0.42 0.07 140);">Installed</span>
+                </div>
+                <div style="padding: 18px 20px;">
+                  <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 16px;"><div><div style="font-size: 13.5px; font-weight: 500; color: #2A211B;">Merriam-Webster API key</div><div style="font-size: 12px; color: #8B7362; margin-top: 3px;">Optional — enables Merriam-Webster as a second source</div></div><a href="https://dictionaryapi.com" style="font-size: 12px; color: #C1663E; white-space: nowrap;">Get a free key →</a></div>
+                  <div style="display: flex; align-items: center; height: 42px; margin-top: 12px; padding: 0 6px 0 14px; border-radius: 10px; background: #FAF7F2; box-shadow: inset 0 0 0 1px rgba(111,78,55,0.14);"><span style="flex: 1; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: #2A211B;">••••••••-••••-4a29-b0f1-••••••••••••</span><span style="width: 30px; height: 30px; border-radius: 7px; display: flex; align-items: center; justify-content: center; color: #6F4E37;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"></path><circle cx="12" cy="12" r="3"></circle></svg></span></div>
+                </div>
+              </div>
+
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #8B7362; margin: 30px 0 10px;">Summon</div>
+              <div style="background: #FFFFFF; border-radius: 14px; box-shadow: 0 0 0 1px rgba(111,78,55,0.11);">
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 16px 20px; border-bottom: 1px solid rgba(111,78,55,0.08);">
+                  <div><div style="font-size: 13.5px; font-weight: 500; color: #2A211B;">Keyboard shortcut</div><div style="font-size: 12px; color: #8B7362; margin-top: 3px;">Opens the summon bar from anywhere</div></div>
+                  <div style="display: flex; align-items: center; gap: 6px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; padding: 4px 8px; border-radius: 6px; background: #F4EEE5; color: #2A211B; box-shadow: inset 0 -1px 0 rgba(111,78,55,0.15);">Ctrl</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; padding: 4px 8px; border-radius: 6px; background: #F4EEE5; color: #2A211B; box-shadow: inset 0 -1px 0 rgba(111,78,55,0.15);">Shift</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; padding: 4px 8px; border-radius: 6px; background: #F4EEE5; color: #2A211B; box-shadow: inset 0 -1px 0 rgba(111,78,55,0.15);">Space</span><button style="margin-left: 8px; height: 28px; padding: 0 11px; border-radius: 7px; border: 1px solid rgba(111,78,55,0.2); background: transparent; color: #6F4E37; font-size: 12px; cursor: pointer;">Record</button></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 16px 20px; border-bottom: 1px solid rgba(111,78,55,0.08);"><div><div style="font-size: 13.5px; font-weight: 500; color: #2A211B;">Floating icon</div><div style="font-size: 12px; color: #8B7362; margin-top: 3px;">A draggable icon on screen</div></div><div style="width: 36px; height: 20px; border-radius: 999px; background: #C1663E; position: relative; flex-shrink: 0;"><div style="position: absolute; top: 2px; right: 2px; width: 16px; height: 16px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 1px 2px rgba(0,0,0,0.2);"></div></div></div>
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 16px 20px; border-bottom: 1px solid rgba(111,78,55,0.08);"><div><div style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 500; color: #2A211B;">Double-click lookup<span style="font-size: 9.5px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #C1663E; padding: 2px 6px; border-radius: 4px; background: oklch(0.95 0.025 50);">Experimental</span></div><div style="font-size: 12px; color: #8B7362; margin-top: 3px;">Double-click any word to look it up</div></div><div style="width: 36px; height: 20px; border-radius: 999px; background: rgba(111,78,55,0.18); position: relative; flex-shrink: 0;"><div style="position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 1px 2px rgba(0,0,0,0.2);"></div></div></div>
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 16px 20px;"><div><div style="font-size: 13.5px; font-weight: 500; color: #2A211B;">Launch at startup</div><div style="font-size: 12px; color: #8B7362; margin-top: 3px;">Open Curious when Windows starts</div></div><div style="width: 36px; height: 20px; border-radius: 999px; background: #C1663E; position: relative; flex-shrink: 0;"><div style="position: absolute; top: 2px; right: 2px; width: 16px; height: 16px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 1px 2px rgba(0,0,0,0.2);"></div></div></div>
+              </div>
+
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #8B7362; margin: 30px 0 10px;">Appearance</div>
+              <div style="display: flex; padding: 3px; border-radius: 10px; background: #F4EEE5; box-shadow: inset 0 0 0 1px rgba(111,78,55,0.08);"><span style="flex: 1; text-align: center; padding: 8px; border-radius: 8px; background: #FFFFFF; font-size: 12.5px; font-weight: 500; color: #2A211B; box-shadow: 0 1px 2px rgba(42,33,27,0.08);">Light</span><span style="flex: 1; text-align: center; padding: 8px; font-size: 12.5px; color: #8B7362;">Dark</span><span style="flex: 1; text-align: center; padding: 8px; font-size: 12.5px; color: #8B7362;">System</span></div>
+            </div>
+            <div style="height: 38px; display: flex; align-items: center; justify-content: space-between; padding: 0 48px; border-top: 1px solid rgba(111,78,55,0.08); margin-top: auto;"><a href="https://services.fetchmate.tech" style="font-size: 11px; color: #8B7362; display: flex; align-items: center; gap: 5px;" style-hover="color: #C1663E;">Built by Fetchmate Chief Technologies<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 17L17 7M9 7h8v8"></path></svg></a><span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #B8A797;">v2.0.0</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4B dark dictionary group, pack missing -->
+    <div id="4b" style="flex-shrink: 0; width: 600px;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.08em; background: #F3EAE2; color: #2A211B; padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(111,78,55,0.2);">4B</span><span style="font-size: 12.5px; color: #6F4E37;">Dark · Dictionary group · pack missing · online first</span></div>
+      <div style="background: #2A211B; border-radius: 16px; padding: 32px; box-shadow: 0 0 0 1px rgba(243,234,226,0.08);">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #A08A78; margin-bottom: 10px;">Dictionary</div>
+        <div style="background: #3A2E25; border-radius: 14px; box-shadow: 0 0 0 1px rgba(243,234,226,0.07);">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 18px 20px; border-bottom: 1px solid rgba(243,234,226,0.06);">
+            <div><div style="font-size: 13.5px; font-weight: 500; color: #F3EAE2;">Dictionary source</div><div style="font-size: 12px; line-height: 1.5; color: #A08A78; margin-top: 3px; max-width: 220px;">Ask Merriam-Webster first. Fall back to the pack on error, limit or no network.</div></div>
+            <div style="display: flex; padding: 3px; border-radius: 9px; background: #2A211B; flex-shrink: 0;"><span style="padding: 6px 13px; font-size: 12.5px; color: #A08A78;">Offline first</span><span style="padding: 6px 13px; border-radius: 7px; background: #4A3B30; font-size: 12.5px; font-weight: 500; color: #F3EAE2;">Online first</span></div>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 16px 20px; border-bottom: 1px solid rgba(243,234,226,0.06);">
+            <div style="display: flex; gap: 12px; align-items: flex-start;"><span style="width: 8px; height: 8px; border-radius: 50%; background: #D97A4E; margin-top: 6px; box-shadow: 0 0 0 4px oklch(0.33 0.05 45);"></span><div><div style="font-size: 13.5px; font-weight: 500; color: #F3EAE2;">No offline pack found</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #A08A78; margin-top: 4px;">userData/packs/curious-en.db</div></div></div>
+            <button style="height: 30px; padding: 0 12px; border-radius: 8px; border: none; background: #D97A4E; color: #2A211B; font-size: 12px; font-weight: 600; cursor: pointer; flex-shrink: 0;" style-hover="background: #E58A5F;">Restore pack</button>
+          </div>
+          <div style="padding: 18px 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 16px;"><div><div style="font-size: 13.5px; font-weight: 500; color: #F3EAE2;">Merriam-Webster API key</div><div style="font-size: 12px; color: #A08A78; margin-top: 3px;">Optional — enables Merriam-Webster as a second source</div></div><a href="https://dictionaryapi.com" style="font-size: 12px; color: #D97A4E; white-space: nowrap;">Get a free key →</a></div>
+            <div style="display: flex; align-items: center; height: 42px; margin-top: 12px; padding: 0 14px; border-radius: 10px; background: #2A211B; box-shadow: inset 0 0 0 1px rgba(243,234,226,0.10);"><span style="font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: #6F5A4A;">Paste your key</span></div>
+          </div>
+        </div>
+      </div>
+      <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.6; color: #8B7362; margin-top: 12px;">Restore pack → re-copies the bundled pack from extraResources (Task 6, option A).</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 05 ABOUT ================= -->
+<section>
+  <div style="display: flex; align-items: baseline; gap: 18px; padding-bottom: 18px; margin-bottom: 32px; border-bottom: 1px solid rgba(111,78,55,0.18);">
+    <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.14em; color: #C1663E;">05</span>
+    <span style="font-family: 'Fraunces', Georgia, serif; font-size: 30px; font-weight: 400; letter-spacing: -0.02em;">About &amp; licenses</span>
+    <span style="font-size: 13.5px; color: #8B7362;">Version, credit, attributions · links open via allowlisted openExternal</span>
+  </div>
+  <div id="5a" style="width: 960px; flex-shrink: 0;">
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.08em; background: #2A211B; color: #F3EAE2; padding: 3px 8px; border-radius: 4px;">5A</span><span style="font-size: 12.5px; color: #6F4E37;">Light · About</span></div>
+    <div style="border-radius: 12px; overflow: hidden; background: #FAF7F2; box-shadow: 0 30px 70px -40px rgba(42,33,27,0.55), 0 0 0 1px rgba(111,78,55,0.14); display: flex; flex-direction: column;">
+      <div style="height: 36px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding-left: 14px; background: #F4EEE5; border-bottom: 1px solid rgba(111,78,55,0.08);">
+        <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 14px; height: 14px; border-radius: 4px; background: #6F4E37; display: flex; align-items: center; justify-content: center;"><svg width="8" height="8" viewBox="0 0 24 24" fill="#FAF7F2"><path d="M4 3h13a3 3 0 013 3v15l-4-2-4 2-4-2-4 2V3z"></path></svg></div><span style="font-size: 11.5px; color: #6F4E37;">Curious Dictionary</span></div>
+        <div style="display: flex; color: #8B7362;"><div style="width: 46px; height: 36px; display: flex; align-items: center; justify-content: center;"><svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor"><line x1="0" y1="5" x2="10" y2="5"></line></svg></div><div style="width: 46px; height: 36px; display: flex; align-items: center; justify-content: center;"><svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor" fill="none"><rect x="0.5" y="0.5" width="9" height="9"></rect></svg></div><div style="width: 46px; height: 36px; display: flex; align-items: center; justify-content: center;"><svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor"><line x1="0" y1="0" x2="10" y2="10"></line><line x1="10" y1="0" x2="0" y2="10"></line></svg></div></div>
+      </div>
+      <div style="display: grid; grid-template-columns: 212px minmax(0, 1fr);">
+        <div style="background: #F4EEE5; border-right: 1px solid rgba(111,78,55,0.08); padding: 22px 12px 14px; display: flex; flex-direction: column; gap: 2px;">
+          <div style="display: flex; align-items: center; gap: 10px; padding: 0 10px 24px;"><div style="width: 26px; height: 26px; border-radius: 7px; background: #6F4E37; display: flex; align-items: center; justify-content: center;"><svg width="13" height="13" viewBox="0 0 24 24" fill="#FAF7F2"><path d="M4 3h13a3 3 0 013 3v15l-4-2-4 2-4-2-4 2V3z"></path></svg></div><span style="font-family: 'Fraunces', Georgia, serif; font-size: 17px; letter-spacing: -0.01em; white-space: nowrap; color: #2A211B;">Curious <i style="color: #C1663E;">Dictionary</i></span></div>
+          <div style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: 8px; font-size: 13px; color: #6F4E37;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>Look up</div>
+          <div style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: 8px; font-size: 13px; color: #6F4E37;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3h12v18l-6-4-6 4z"></path></svg>Saved<span style="margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #8B7362;">12</span></div>
+          <div style="flex: 1;"></div>
+          <div style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: 8px; font-size: 13px; color: #6F4E37;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path><circle cx="16" cy="7" r="2"></circle><circle cx="10" cy="17" r="2"></circle></svg>Settings</div>
+          <div style="display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: 8px; background: #FFFFFF; box-shadow: 0 1px 2px rgba(42,33,27,0.06), 0 0 0 1px rgba(111,78,55,0.08); font-size: 13px; font-weight: 500; color: #2A211B;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C1663E" stroke-width="1.7"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v6M12 7.5v.5"></path></svg>About</div>
+        </div>
+        <div style="padding: 44px 48px 44px;">
+          <div style="display: flex; align-items: center; gap: 20px;">
+            <div style="width: 64px; height: 64px; border-radius: 16px; background: #6F4E37; display: flex; align-items: center; justify-content: center; box-shadow: 0 14px 30px -14px rgba(42,33,27,0.6);"><svg width="30" height="30" viewBox="0 0 24 24" fill="#FAF7F2"><path d="M4 3h13a3 3 0 013 3v15l-4-2-4 2-4-2-4 2V3z"></path></svg></div>
+            <div>
+              <div style="font-family: 'Fraunces', Georgia, serif; font-size: 34px; font-weight: 300; letter-spacing: -0.03em; line-height: 1; color: #2A211B;">Curious <i style="color: #C1663E; font-weight: 400;">Dictionary</i></div>
+              <div style="display: flex; align-items: center; gap: 12px; margin-top: 10px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #8B7362;">Version 2.0.0 · Windows</span><span style="width: 3px; height: 3px; border-radius: 50%; background: #B8A797;"></span><a href="https://services.fetchmate.tech" style="font-size: 12.5px; color: #C1663E; display: flex; align-items: center; gap: 5px;">Built by Fetchmate Chief Technologies<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 17L17 7M9 7h8v8"></path></svg></a></div>
+            </div>
+          </div>
+
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #8B7362; margin: 40px 0 10px;">Sources &amp; licenses</div>
+          <div style="background: #FFFFFF; border-radius: 14px; box-shadow: 0 0 0 1px rgba(111,78,55,0.11);">
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: center; padding: 18px 20px; border-bottom: 1px solid rgba(111,78,55,0.08);">
+              <div><div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 13.5px; font-weight: 500; color: #2A211B;">Wiktionary contributors</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 2px 7px; border-radius: 5px; background: oklch(0.935 0.03 140); color: oklch(0.40 0.06 140);">CC BY-SA 4.0 / GFDL</span></div><div style="font-size: 12.5px; line-height: 1.5; color: #8B7362; margin-top: 4px;">Offline definitions, pronunciations, examples and etymologies.</div></div>
+              <a href="https://en.wiktionary.org" style="font-size: 12px; display: flex; align-items: center; gap: 5px;">en.wiktionary.org<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 17L17 7M9 7h8v8"></path></svg></a>
+            </div>
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: center; padding: 18px 20px; border-bottom: 1px solid rgba(111,78,55,0.08);">
+              <div><div style="font-size: 13.5px; font-weight: 500; color: #2A211B;">kaikki.org · Wiktextract</div><div style="font-size: 12.5px; line-height: 1.5; color: #8B7362; margin-top: 4px;">Machine-readable extraction by Tatu Ylonen.</div></div>
+              <a href="https://kaikki.org" style="font-size: 12px; display: flex; align-items: center; gap: 5px;">kaikki.org<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 17L17 7M9 7h8v8"></path></svg></a>
+            </div>
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: center; padding: 18px 20px;">
+              <div><div style="font-size: 13.5px; font-weight: 500; color: #2A211B;">Merriam-Webster</div><div style="font-size: 12.5px; line-height: 1.5; color: #8B7362; margin-top: 4px;">Online definitions from the Collegiate Dictionary API, when a key is set. Never stored or bundled.</div></div>
+              <a href="https://dictionaryapi.com" style="font-size: 12px; display: flex; align-items: center; gap: 5px;">dictionaryapi.com<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 17L17 7M9 7h8v8"></path></svg></a>
+            </div>
+          </div>
+
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #8B7362; margin: 30px 0 10px;">Installed pack</div>
+          <div style="display: grid; grid-template-columns: 120px minmax(0, 1fr); row-gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; padding: 16px 20px; border-radius: 14px; background: #F4EEE5;">
+            <span style="color: #8B7362;">pack_id</span><span style="color: #2A211B;">curious-en</span>
+            <span style="color: #8B7362;">source</span><span style="color: #2A211B;">Wiktionary via kaikki.org</span>
+            <span style="color: #8B7362;">license</span><span style="color: #2A211B;">CC BY-SA 4.0 / GFDL</span>
+            <span style="color: #8B7362;">build_date</span><span style="color: #2A211B;">2026-10-12</span>
+            <span style="color: #8B7362;">entry_count</span><span style="color: #2A211B;">412,806</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 06 FLOATING ICON ================= -->
+<section>
+  <div style="display: flex; align-items: baseline; gap: 18px; padding-bottom: 18px; margin-bottom: 32px; border-bottom: 1px solid rgba(111,78,55,0.18);">
+    <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.14em; color: #C1663E;">06</span>
+    <span style="font-family: 'Fraunces', Georgia, serif; font-size: 30px; font-weight: 400; letter-spacing: -0.02em;">Floating icon</span>
+    <span style="font-size: 13.5px; color: #8B7362;">36px · snapped to edge · default / pinned / dragging / expanded</span>
+  </div>
+  <div style="display: flex; flex-wrap: wrap; gap: 32px;">
+    <div id="6a" style="flex-shrink: 0; width: 720px;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.08em; background: #2A211B; color: #F3EAE2; padding: 3px 8px; border-radius: 4px;">6A</span><span style="font-size: 12.5px; color: #6F4E37;">Light</span></div>
+      <div style="height: 260px; border-radius: 16px; background: repeating-linear-gradient(135deg, #D8CBB8 0 14px, #D3C5B1 14px 28px); display: flex; align-items: center; justify-content: space-around; padding: 0 40px;">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 12px;"><div style="width: 36px; height: 36px; border-radius: 50%; background: #6F4E37; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 16px -4px rgba(42,33,27,0.45);"><svg width="15" height="15" viewBox="0 0 24 24" fill="#FAF7F2"><path d="M4 3h13a3 3 0 013 3v15l-4-2-4 2-4-2-4 2V3z"></path></svg></div><span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #6F4E37;">Default</span></div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 12px;"><div style="width: 36px; height: 36px; border-radius: 50%; background: #6F4E37; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 16px -4px rgba(42,33,27,0.45), 0 0 0 2px #FAF7F2, 0 0 0 4px #C1663E;"><svg width="15" height="15" viewBox="0 0 24 24" fill="#FAF7F2"><path d="M4 3h13a3 3 0 013 3v15l-4-2-4 2-4-2-4 2V3z"></path></svg></div><span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #6F4E37;">Pinned</span></div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 12px;"><div style="width: 36px; height: 36px; border-radius: 50%; background: #6F4E37; display: flex; align-items: center; justify-content: center; transform: scale(1.08); box-shadow: 0 18px 30px -8px rgba(42,33,27,0.55);"><svg width="15" height="15" viewBox="0 0 24 24" fill="#FAF7F2"><path d="M4 3h13a3 3 0 013 3v15l-4-2-4 2-4-2-4 2V3z"></path></svg></div><span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #6F4E37;">Dragging</span></div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 12px;"><div style="display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 6px; border-radius: 999px; background: #FFFFFF; box-shadow: 0 14px 30px -12px rgba(42,33,27,0.5), 0 0 0 1px rgba(111,78,55,0.10);"><div style="width: 32px; height: 32px; border-radius: 50%; background: #6F4E37; display: flex; align-items: center; justify-content: center;"><svg width="13" height="13" viewBox="0 0 24 24" fill="#FAF7F2"><path d="M4 3h13a3 3 0 013 3v15l-4-2-4 2-4-2-4 2V3z"></path></svg></div><span style="font-family: 'Fraunces', Georgia, serif; font-size: 16px; color: #2A211B; width: 130px;">ephemeral</span><div style="width: 28px; height: 28px; border-radius: 50%; background: #C1663E; display: flex; align-items: center; justify-content: center;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FAF7F2" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div></div><span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #6F4E37;">Expanded</span></div>
+      </div>
+    </div>
+    <div id="6b" style="flex-shrink: 0; width: 720px;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.08em; background: #F3EAE2; color: #2A211B; padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(111,78,55,0.2);">6B</span><span style="font-size: 12.5px; color: #6F4E37;">Dark</span></div>
+      <div style="height: 260px; border-radius: 16px; background: repeating-linear-gradient(135deg, #1E1712 0 14px, #1A140F 14px 28px); display: flex; align-items: center; justify-content: space-around; padding: 0 40px;">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 12px;"><div style="width: 36px; height: 36px; border-radius: 50%; background: #3A2E25; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 16px -4px rgba(0,0,0,0.7), 0 0 0 1px rgba(243,234,226,0.1);"><svg width="15" height="15" viewBox="0 0 24 24" fill="#F3EAE2"><path d="M4 3h13a3 3 0 013 3v15l-4-2-4 2-4-2-4 2V3z"></path></svg></div><span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #A08A78;">Default</span></div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 12px;"><div style="width: 36px; height: 36px; border-radius: 50%; background: #3A2E25; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px #1E1712, 0 0 0 4px #D97A4E;"><svg width="15" height="15" viewBox="0 0 24 24" fill="#F3EAE2"><path d="M4 3h13a3 3 0 013 3v15l-4-2-4 2-4-2-4 2V3z"></path></svg></div><span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #A08A78;">Pinned</span></div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 12px;"><div style="width: 36px; height: 36px; border-radius: 50%; background: #3A2E25; display: flex; align-items: center; justify-content: center; transform: scale(1.08); box-shadow: 0 18px 30px -8px rgba(0,0,0,0.85);"><svg width="15" height="15" viewBox="0 0 24 24" fill="#F3EAE2"><path d="M4 3h13a3 3 0 013 3v15l-4-2-4 2-4-2-4 2V3z"></path></svg></div><span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #A08A78;">Dragging</span></div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 12px;"><div style="display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 6px; border-radius: 999px; background: #3A2E25; box-shadow: 0 14px 30px -10px rgba(0,0,0,0.8), 0 0 0 1px rgba(243,234,226,0.08);"><div style="width: 32px; height: 32px; border-radius: 50%; background: #2A211B; display: flex; align-items: center; justify-content: center;"><svg width="13" height="13" viewBox="0 0 24 24" fill="#F3EAE2"><path d="M4 3h13a3 3 0 013 3v15l-4-2-4 2-4-2-4 2V3z"></path></svg></div><span style="font-family: 'Fraunces', Georgia, serif; font-size: 16px; color: #F3EAE2; width: 130px;">ephemeral</span><div style="width: 28px; height: 28px; border-radius: 50%; background: #D97A4E; display: flex; align-items: center; justify-content: center;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2A211B" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div></div><span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #A08A78;">Expanded</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 07 SYSTEM ================= -->
+<section>
+  <div style="display: flex; align-items: baseline; gap: 18px; padding-bottom: 18px; margin-bottom: 32px; border-bottom: 1px solid rgba(111,78,55,0.18);">
+    <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.14em; color: #C1663E;">07</span>
+    <span style="font-family: 'Fraunces', Georgia, serif; font-size: 30px; font-weight: 400; letter-spacing: -0.02em;">System</span>
+    <span style="font-size: 13.5px; color: #8B7362;">Palette and type for the renderers</span>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; max-width: 1472px;">
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #8B7362; margin-bottom: 6px;">Light</div>
+      <sc-for list="{{ lightSwatches }}" as="c" hint-placeholder-count="6">
+        <div style="display: flex; align-items: center; gap: 12px;"><div style="width: 36px; height: 36px; border-radius: 9px; background: {{ c.hex }}; box-shadow: inset 0 0 0 1px rgba(42,33,27,0.10);"></div><span style="font-size: 13px; color: #2A211B; width: 110px;">{{ c.name }}</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #8B7362;">{{ c.hex }}</span></div>
+      </sc-for>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #8B7362; margin-bottom: 6px;">Dark</div>
+      <sc-for list="{{ darkSwatches }}" as="c" hint-placeholder-count="6">
+        <div style="display: flex; align-items: center; gap: 12px;"><div style="width: 36px; height: 36px; border-radius: 9px; background: {{ c.hex }}; box-shadow: inset 0 0 0 1px rgba(42,33,27,0.10);"></div><span style="font-size: 13px; color: #2A211B; width: 110px;">{{ c.name }}</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #8B7362;">{{ c.hex }}</span></div>
+      </sc-for>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 18px;">
+      <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #8B7362;">Type</div>
+      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px;"><span style="font-family: 'Fraunces', Georgia, serif; font-size: 44px; font-weight: 300; letter-spacing: -0.04em; line-height: 1;">petrichor</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #8B7362;">Fraunces 300 · 64/50</span></div>
+      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px;"><span style="font-family: 'Fraunces', Georgia, serif; font-size: 18px;">recent word</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #8B7362;">Fraunces 400 · 18</span></div>
+      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px;"><span style="font-size: 15px;">Definition body text</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #8B7362;">Inter 400 · 15/1.65</span></div>
+      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px;"><span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;">Section label</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #8B7362;">Mono 10 · +0.16em</span></div>
+    </div>
+  </div>
+</section>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      nearMatches: [
+        { w: 'petrichor', pos: 'noun' },
+        { w: 'petrify', pos: 'verb' },
+        { w: 'petrified', pos: 'adjective' },
+        { w: 'petrifaction', pos: 'noun' }
+      ],
+      recentGroups: [
+        { label: 'Today', items: [{ w: 'petrichor', t: '2 min ago', saved: true }, { w: 'apricity', t: '1 hr ago', saved: false }] },
+        { label: 'Yesterday', items: [{ w: 'sonder', t: '9:41 pm', saved: false }, { w: 'quotidian', t: '4:12 pm', saved: true }] },
+        { label: 'Earlier this week', items: [{ w: 'liminal', t: 'Mon', saved: false }, { w: 'susurrus', t: 'Mon', saved: true }, { w: 'halcyon', t: 'Sun', saved: false }] }
+      ],
+      suggestions: [
+        { rest: 'inal', pos: 'adjective', active: true, idle: false },
+        { rest: 'erence', pos: 'noun', active: false, idle: true },
+        { rest: 'n', pos: 'verb', active: false, idle: true },
+        { rest: 'pid', pos: 'adjective', active: false, idle: true },
+        { rest: 'bic', pos: 'adjective', active: false, idle: true },
+        { rest: 'erick', pos: 'noun', active: false, idle: true }
+      ],
+      saved: [
+        { w: 'petrichor', g: 'The distinctive scent that accompanies the first rain after a dry spell.', d: 'Today' },
+        { w: 'quotidian', g: 'Occurring every day; commonplace, ordinary.', d: 'Yesterday' },
+        { w: 'susurrus', g: 'A soft murmuring or rustling sound; a whisper.', d: 'Mon' },
+        { w: 'apricity', g: 'The warmth of the sun in winter.', d: '12 Oct' },
+        { w: 'defenestration', g: 'The act of throwing someone or something out of a window.', d: '9 Oct' },
+        { w: 'hiraeth', g: 'A homesickness for a place one cannot return to.', d: '2 Oct' },
+        { w: 'halcyon', g: 'Calm and peaceful; happy and carefree.', d: '28 Sep' }
+      ],
+      lightSwatches: [
+        { name: 'Paper', hex: '#FAF7F2' }, { name: 'Chrome', hex: '#F4EEE5' }, { name: 'Ink', hex: '#2A211B' },
+        { name: 'Coffee', hex: '#6F4E37' }, { name: 'Muted', hex: '#8B7362' }, { name: 'Terracotta', hex: '#C1663E' }
+      ],
+      darkSwatches: [
+        { name: 'Paper', hex: '#2A211B' }, { name: 'Surface', hex: '#3A2E25' }, { name: 'Ink', hex: '#F3EAE2' },
+        { name: 'Latte', hex: '#C4A891' }, { name: 'Muted', hex: '#A08A78' }, { name: 'Terracotta', hex: '#D97A4E' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

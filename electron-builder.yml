@@ -18,6 +18,10 @@ files:
   - "!.git"
   - "!.claude${/*}"
   - "!electron-builder.yml"
+  - "!data${/*}"
+  - "!dist-pack${/*}"
+  - "!tools${/*}"
+  - "!docs${/*}"
 
 win:
   icon: assets/icons/app-icon.ico
