@@ -15,7 +15,7 @@ Publishing packs: docs/PUBLISHING-PACKS.md.
 |---|---|---|---|
 | 0 | Handoff system | done | |
 | — | Handoff v2 amendment (docs only) | done | |
-| 1 | Pack builder | **next** | needs data/kaikki-english.jsonl; `--profile core\|full`, `--lang` |
+| 1 | Pack builder | built, awaiting review | 20k sample only; full-file run pending Chris's OK |
 | 1b | Release-prep script | pending | `npm run pack:release` |
 | 2a | Electron upgrade + node:sqlite smoke test | pending | own commit; Chris hand-tests shortcuts/clipboard/tray after |
 | 2b | Resolver chain + source badge | pending | limit states 2E/2F, local daily MW call counter (number only) |
@@ -61,6 +61,14 @@ Chris reads these from Task Manager (Details tab, sum of the app's processes); C
 - CLAUDE.md gained the cross-cutting rules (memory, measure step, fonts, credit).
 - Small additions beyond the literal amendment, flag if unwanted: the pack meta table also stores `profile` and `version` (Task 1b's manifest reads them from there); Task 2b reads `<userData>/packs/curious-en-full.db` if present, else `-core.db`; Task 7 output is `curious-sn-<profile>.db`.
 - Versioning: app goes straight to 2.0.0 in Task 5. Packs use date versions (2026.10.26) on their own `packs` release tag, independent of app versions.
+
+### Task 1 — Pack builder
+- Added tools/build-pack.js, tools/README.md, and npm script `pack:build`. Uses the system Node built-in `node:sqlite` (no npm dependency, nothing native).
+- Flags: `--profile core|full`, `--lang`, plus `--input` and `--limit`. `--limit` runs write to dist-pack/sample/ so they can never be picked up as a real pack.
+- Sample (first 20,000 lines): core 5.2 MB, full 11.2 MB, 15,644 entries each, 531 redirects.
+- Choices to flag: sense labels like "(obsolete)" are prefixed into the gloss text; rare/obsolete senses sort last so core keeps common meanings; 2 examples (full) are newline-joined in `senses.example`; redirects are kept only when the form has no entry of its own and the lemma exists; skipped POS: name, character, symbol, punct; `meta` is key/value.
+- Known gap: ~8 of 15k sample etymologies still carry a leftover tree line.
+- Full 3.4 GB run NOT done yet.
 
 ## Notes for the next window (Task 1)
 - Input file: `data/kaikki-english.jsonl` in the repo root (Chris downloads the English extract from kaikki.org/dictionary/English and renames it). Check it exists before starting; if not, stop and ask.
