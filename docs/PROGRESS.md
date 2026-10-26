@@ -16,8 +16,8 @@ Publishing packs: docs/PUBLISHING-PACKS.md.
 | 0 | Handoff system | done | |
 | — | Handoff v2 amendment (docs only) | done | |
 | 1 | Pack builder | done | full core + full packs built; checked with tools/lookup.js |
-| 1b | Release-prep script | **next** | `npm run pack:release` |
-| 2a | Electron upgrade + node:sqlite smoke test | pending | own commit; Chris hand-tests shortcuts/clipboard/tray after |
+| 1b | Release-prep script | done | `npm run pack:release`; not yet uploaded to GitHub |
+| 2a | Electron upgrade + node:sqlite smoke test | **next** | own commit; Chris hand-tests shortcuts/clipboard/tray after |
 | 2b | Resolver chain + source badge | pending | limit states 2E/2F, local daily MW call counter (number only) |
 | 1c | Commonness ranking | pending | before Task 3 (autocomplete). Propose BOTH options with licensing, Chris picks; verify any list's license first |
 | 3 | Main window (3A-3D, 3F autocomplete) | pending | local fonts + OFL licenses; then measure step |
@@ -74,8 +74,14 @@ Chris reads these from Task Manager (Details tab, sum of the app's processes); C
 - Core and full differ by a few dozen redirects because the heuristic counts capped senses.
 - Known weak spot: 1,383 entries still have a "spelling of" style sense kept as a normal definition if the link did not match; fine for now.
 
-## Notes for the next window (Task 1b)
-- Task 1b needs real packs in dist-pack/*.db (not dist-pack/sample). Check they exist; if not, ask Chris to run `npm run pack:build -- --profile core` and `--profile full`, or test 1b against the sample files.
+### Task 1b — Release-prep script
+- Added tools/prepare-release.js and npm script `pack:release`. Gzips each top-level dist-pack/*.db (never sample/) into dist-pack/release/, hashes .db and .gz (streamed), writes manifest.json (schema 1) and NOTICE.txt, prints the upload commands. Output dir is cleared each run so stale files cannot be uploaded.
+- Result: core 140.4 MB -> 65.1 MB gz, full 172.2 MB -> 76.3 MB gz, both v2026.10.26, ~80 s. Decompressed core gz hashes to the manifest sha256.
+- NOTICE.txt also carries the Fetchmate credit line (small addition, flag if unwanted).
+
+## Notes for the next window (Task 2a)
+- Packs are built and release-prepped locally (dist-pack/release/). Uploading to the `packs` GitHub Release is Chris's call (docs/PUBLISHING-PACKS.md); nothing in 2a depends on it.
+- Task 2a is its own commit; do not package or launch the exe.
 
 ## Old notes (Task 1, done)
 - Input file: `data/kaikki-english.jsonl` in the repo root (Chris downloads the English extract from kaikki.org/dictionary/English and renames it). Check it exists before starting; if not, stop and ask.

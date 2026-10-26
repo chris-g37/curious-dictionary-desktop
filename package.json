@@ -6,7 +6,8 @@
   "scripts": {
     "start": "electron .",
     "build": "electron-builder",
-    "pack:build": "node tools/build-pack.js"
+    "pack:build": "node tools/build-pack.js",
+    "pack:release": "node tools/prepare-release.js"
   },
   "author": "Chris Gandiko",
   "license": "UNLICENSED",

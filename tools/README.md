@@ -6,6 +6,10 @@ Build-time scripts. None of this ships inside the app (see `electron-builder.yml
 
 `node tools/lookup.js ran colour petrichor` prints what `dist-pack/curious-en-core.db` returns, following redirects. `--pack <file>` picks another pack.
 
+## Release prep (`prepare-release.js`)
+
+`npm run pack:release` gzips every `dist-pack/*.db` into `dist-pack/release/`, adds `manifest.json` (sizes, SHA-256 of .db and .gz, download URLs) and `NOTICE.txt`, and prints the upload commands. See docs/PUBLISHING-PACKS.md.
+
 ## Pack builder (`build-pack.js`)
 
 Turns a kaikki.org Wiktionary extract into a compact SQLite dictionary pack.
