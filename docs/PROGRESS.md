@@ -15,10 +15,11 @@ Publishing packs: docs/PUBLISHING-PACKS.md.
 |---|---|---|---|
 | 0 | Handoff system | done | |
 | — | Handoff v2 amendment (docs only) | done | |
-| 1 | Pack builder | done (sample verified) | full-file builds not run yet; Chris runs or approves them |
+| 1 | Pack builder | done | full core + full packs built; checked with tools/lookup.js |
 | 1b | Release-prep script | **next** | `npm run pack:release` |
 | 2a | Electron upgrade + node:sqlite smoke test | pending | own commit; Chris hand-tests shortcuts/clipboard/tray after |
 | 2b | Resolver chain + source badge | pending | limit states 2E/2F, local daily MW call counter (number only) |
+| 1c | Commonness ranking | pending | before Task 3 (autocomplete). Propose BOTH options with licensing, Chris picks; verify any list's license first |
 | 3 | Main window (3A-3D, 3F autocomplete) | pending | local fonts + OFL licenses; then measure step |
 | 4 | Interlinking + Saved (2A, 2B, 3E, 3G) | pending | add Copy / Pin / History to the bar |
 | 5 | Settings / About (4A, 4B, 5A) + README | pending | version 2.0.0; panes in main window; retire old settings window |
@@ -68,7 +69,10 @@ Chris reads these from Task Manager (Details tab, sum of the app's processes); C
 - Sample (first 20,000 lines): core 5.2 MB, full 11.2 MB, 15,644 entries each, 531 redirects.
 - Choices to flag: sense labels like "(obsolete)" are prefixed into the gloss text; rare/obsolete senses sort last so core keeps common meanings; 2 examples (full) are newline-joined in `senses.example`; redirects are kept only when the form has no entry of its own and the lemma exists; skipped POS: name, character, symbol, punct; `meta` is key/value.
 - Known gap: ~8 of 15k sample etymologies still carry a leftover tree line.
-- Full 3.4 GB run NOT done yet.
+- Full builds: core 140 MB, full 172 MB, 662,309 entries (612,178 distinct words), ~535k redirects, ~5 min each. Redirects dominate the size.
+- Lookup review fixes: IPA missing closing slash (927 entries), redirects kept for inflections even if the form has its own entry (ran -> run), untagged "spelling of X" senses (colour -> color), heuristic dropping redirects to a much smaller entry (run no longer -> rin). tools/lookup.js added.
+- Core and full differ by a few dozen redirects because the heuristic counts capped senses.
+- Known weak spot: 1,383 entries still have a "spelling of" style sense kept as a normal definition if the link did not match; fine for now.
 
 ## Notes for the next window (Task 1b)
 - Task 1b needs real packs in dist-pack/*.db (not dist-pack/sample). Check they exist; if not, ask Chris to run `npm run pack:build -- --profile core` and `--profile full`, or test 1b against the sample files.

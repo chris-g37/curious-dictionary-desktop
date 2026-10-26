@@ -24,6 +24,7 @@ Progress log: docs/PROGRESS.md
 | 1b | Release-prep script | `npm run pack:release` (below) |
 | 2a | Electron upgrade + node:sqlite smoke test | its own commit; Chris hand-tests shortcuts/clipboard/tray after |
 | 2b | Resolver chain + source badge | includes limit states 2E/2F and a local daily MW call counter (a number only) |
+| 1c | Commonness ranking | before Task 3; options below, Chris picks |
 | 3 | Main window (3A-3D, 3F autocomplete) | bundle Fraunces, Inter, JetBrains Mono locally; include their OFL license files |
 | 4 | Interlinking + Saved (2A, 2B, 3E, 3G) | add Copy / Pin / History to the bar (they don't exist yet) |
 | 5 | Settings / About (4A, 4B, 5A) + README | version 2.0.0; Settings and About become main-window panes; tray > Settings opens that pane; retire the old settings window |
@@ -151,6 +152,19 @@ Show the source in the bar result card footer as the source badge (design 2A/2B/
 Limit states (design 2E/2F): keep a local daily counter of MW calls (a number and a date only, in electron-store). When MW says the limit is reached (or the counter hits 1,000), show 2E (fell back to pack) or 2F (no pack installed).
 
 No MW responses are ever written to disk beyond the existing recent-history word list (words only, not definitions).
+```
+
+---
+
+## Task 1c — Commonness ranking (before Task 3)
+
+```
+Task 1c: add a frequency rank per word to the pack, so autocomplete suggestions favour everyday words. Exact lookups (Task 2b) do not need it.
+
+Do NOT implement yet. First propose both options, with licensing noted, and let Chris pick:
+- A) An open word-frequency list. The best-known one is thought to be CC BY-SA, but that is unverified: check the actual license text before proposing or using any list, and say how attribution would appear on the About screen/README.
+- B) A heuristic from the pack itself, e.g. sense count plus whether the word has examples.
+Report for each: size impact on the pack, build-time cost, how well it ranks (try a few prefixes like "pe", "con"), and any attribution obligations.
 ```
 
 ---

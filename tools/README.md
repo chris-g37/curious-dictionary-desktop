@@ -2,6 +2,10 @@
 
 Build-time scripts. None of this ships inside the app (see `electron-builder.yml`).
 
+## Dev lookup (`lookup.js`)
+
+`node tools/lookup.js ran colour petrichor` prints what `dist-pack/curious-en-core.db` returns, following redirects. `--pack <file>` picks another pack.
+
 ## Pack builder (`build-pack.js`)
 
 Turns a kaikki.org Wiktionary extract into a compact SQLite dictionary pack.
@@ -43,7 +47,7 @@ Output: `dist-pack/curious-<lang>-<profile>.db` (gitignored).
 - `meta(key, value)`: pack_id, language, profile, version, source, license, build_date, entry_count, schema_version.
 - `entries(id, word, word_lower, pos, ipa, etymology)`: one row per word + part of speech (+ etymology).
 - `senses(entry_id, idx, gloss, example)`: ordered definitions. With 2 examples (full), `example` holds them separated by a newline.
-- `redirects(form, lemma)`: "form of" pointers, e.g. `ran` -> `run`. Only kept when the form has no entry of its own and the lemma is in the pack.
+- `redirects(form, lemma)`: "form of" pointers, e.g. `ran` -> `run`, `colour` -> `color`. Kept even when the form has its own entry (`ran` is also a noun), so a lookup should show the redirect first, then the word's own entries. Rare/dialect forms and redirects to a much smaller entry are dropped (this is why `run` does not point at Scots `rin`).
 
 Autocomplete: `WHERE word_lower >= 'lim' AND word_lower < 'lin'` on the indexed `word_lower` column. No FTS5.
 

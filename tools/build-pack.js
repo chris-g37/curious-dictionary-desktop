@@ -110,7 +110,11 @@ function pickIpa(sounds) {
   const us = withIpa.find((s) =>
     (s.tags || []).some((t) => /^(US|General-American)$/.test(t))
   );
-  return (us || withIpa[0]).ipa;
+  let ipa = (us || withIpa[0]).ipa;
+  // Wiktionary sometimes splits "/a.b-c/ ~ /a.b-d/" across entries, leaving
+  // "/a.b" with no closing slash. Close it.
+  if (ipa.startsWith("/") && !ipa.endsWith("/")) ipa += "/";
+  return ipa;
 }
 
 function glossOf(sense) {
@@ -159,7 +163,23 @@ function cleanEtymology(text) {
 // A sense that only says "form of X" / "alternative spelling of X".
 function redirectTarget(sense) {
   const ref = (sense.form_of && sense.form_of[0]) || (sense.alt_of && sense.alt_of[0]);
-  return ref && typeof ref.word === "string" ? ref.word : null;
+  if (ref && typeof ref.word === "string") return ref.word;
+  // Some "spelling of color" senses are tagged alt-of/form-of but carry no
+  // target field; the gloss links the lemma last, so use that.
+  const tags = sense.tags || [];
+  if ((tags.includes("alt-of") || tags.includes("form-of")) && Array.isArray(sense.links)) {
+    const last = sense.links[sense.links.length - 1];
+    if (last && typeof last[1] === "string") return last[1].split("#")[0] || null;
+  }
+  // Untagged ones ("Commonwealth spelling of color."): gloss ends with the
+  // last linked word.
+  const g = sense.glosses && sense.glosses.length === 1 ? sense.glosses[0] : "";
+  const m = /\b(?:spelling|spellings|variant|alternative form|form)\s+of\s+([^\s.;,]+)\.?$/i.exec(g);
+  if (m && Array.isArray(sense.links) && sense.links.length) {
+    const last = sense.links[sense.links.length - 1];
+    if (last && last[0] === m[1] && typeof last[1] === "string") return last[1].split("#")[0] || null;
+  }
+  return null;
 }
 
 // ---- Main ------------------------------------------------------------------
@@ -199,7 +219,7 @@ async function main() {
       gloss TEXT NOT NULL,
       example TEXT
     );
-    CREATE TABLE redirects (form TEXT NOT NULL, lemma TEXT NOT NULL);
+    CREATE TABLE redirects (form TEXT NOT NULL, lemma TEXT NOT NULL, low INTEGER NOT NULL);
   `);
 
   const insEntry = db.prepare(
@@ -208,7 +228,7 @@ async function main() {
   const insSense = db.prepare(
     "INSERT INTO senses (entry_id, idx, gloss, example) VALUES (?, ?, ?, ?)"
   );
-  const insRedirect = db.prepare("INSERT INTO redirects (form, lemma) VALUES (?, ?)");
+  const insRedirect = db.prepare("INSERT INTO redirects (form, lemma, low) VALUES (?, ?, ?)");
 
   const stats = { lines: 0, wrongLang: 0, skippedPos: 0, noGloss: 0, badJson: 0 };
   let pending = 0;
@@ -243,11 +263,16 @@ async function main() {
 
     // Split senses into real definitions vs. "form of X" pointers.
     const real = [];
-    const targets = new Set();
     for (const s of e.senses || []) {
       const target = redirectTarget(s);
       if (target) {
-        targets.add(target);
+        // Recorded even when the word has its own senses ("ran" is a noun
+        // AND the past tense of "run"). Rare/dialect forms are pruned below.
+        if (target !== e.word) {
+          const low = (s.tags || []).some((t) => LOW_PRIORITY_TAGS.has(t) || t === "dialectal" || t === "pronunciation-spelling");
+          insRedirect.run(e.word, target, low ? 1 : 0);
+          pending++;
+        }
         continue;
       }
       const gloss = glossOf(s);
@@ -257,14 +282,8 @@ async function main() {
     }
 
     if (!real.length) {
-      // No definitions of its own: keep only as a redirect to the lemma.
-      for (const t of targets) {
-        if (t !== e.word) {
-          insRedirect.run(e.word, t);
-          pending++;
-        }
-      }
-      if (!targets.size) stats.noGloss++;
+      // No definitions of its own; any redirects were recorded above.
+      if (!(e.senses || []).some(redirectTarget)) stats.noGloss++;
     } else {
       // Stable sort: rare/obsolete senses go last, original order otherwise.
       real.sort((a, b) => Number(a.low) - Number(b.low));
@@ -294,12 +313,25 @@ async function main() {
   }
   db.exec("COMMIT");
 
-  // Redirects: drop ones whose "form" is a headword in its own right (the
-  // entry wins), and ones pointing at a lemma that isn't in the pack.
+  // Redirects: keep inflections of common words even when the form has its
+  // own entry ("ran" -> "run"), but drop rare/dialect ones in that case, and
+  // any pointing at a lemma that isn't in the pack.
   db.exec(`CREATE INDEX idx_entries_word ON entries(word)`);
   db.exec(`
-    DELETE FROM redirects WHERE form IN (SELECT word FROM entries);
+    DELETE FROM redirects WHERE low = 1 AND form IN (SELECT word FROM entries);
     DELETE FROM redirects WHERE lemma NOT IN (SELECT word FROM entries);
+    CREATE INDEX idx_senses_entry ON senses(entry_id, idx);
+    -- Heuristic: "run" is technically the past participle of Scots "rin", but
+    -- pointing there is useless. If the form has its own entries and the
+    -- target is much smaller than the form, the redirect is dropped.
+    CREATE TEMP TABLE wc AS
+      SELECT e.word AS word, COUNT(*) AS n
+      FROM entries e JOIN senses s ON s.entry_id = e.id GROUP BY e.word;
+    CREATE UNIQUE INDEX temp.idx_wc ON wc(word);
+    DELETE FROM redirects WHERE form IN (SELECT word FROM wc) AND
+      2 * COALESCE((SELECT n FROM wc WHERE word = redirects.lemma), 0)
+        < (SELECT n FROM wc WHERE word = redirects.form);
+    DROP TABLE temp.wc;
     CREATE TABLE redirects_dedup AS SELECT DISTINCT form, lemma FROM redirects;
     DROP TABLE redirects;
     ALTER TABLE redirects_dedup RENAME TO redirects;
@@ -309,7 +341,6 @@ async function main() {
   // Indexes: word_lower drives autocomplete (prefix range queries) and lookup.
   db.exec(`
     CREATE INDEX idx_entries_word_lower ON entries(word_lower);
-    CREATE INDEX idx_senses_entry ON senses(entry_id, idx);
     CREATE INDEX idx_redirects_form ON redirects(form);
   `);
 
