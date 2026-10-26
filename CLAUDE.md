@@ -20,7 +20,15 @@ Add (a) an offline dictionary pack, (b) a main app window, (c) interlinking betw
 - in the README
 It links to https://services.fetchmate.tech. Open links via shell.openExternal, only for https URLs on an allowlist (services.fetchmate.tech, en.wiktionary.org, kaikki.org, dictionaryapi.com). Do NOT put it in the summon bar (keep the bar clean).
 
+## Cross-cutting rules (added in handoff v2)
+- Memory/RAM: the summon bar stays hidden-but-alive; the main window is DESTROYED on close (not hidden); the floating icon stays off by default; the pack is read through node:sqlite page by page, never loaded whole into memory.
+- Measure step: after Task 3 and again after Task 6, record in docs/PROGRESS.md the app's total memory in Task Manager (Details tab, sum of the app's processes) with (a) idle in tray and (b) main window open with a word looked up. I provide the numbers; you write them down.
+- Fonts bundled locally, OFL license files included, listed on the About screen.
+- Packs are never bundled in the installer; they are downloaded on demand (see docs/PUBLISHING-PACKS.md).
+- Credit remains: "Built by Fetchmate Chief Technologies" linking to https://services.fetchmate.tech in the main window footer, About screen and README.
+
 ## Where things are (added by Task 0)
-- Task list and specs: docs/curious-offline-handoff.md
+- Task list and specs: docs/curious-offline-handoff.md (v2)
+- Publishing packs: docs/PUBLISHING-PACKS.md
 - Progress log / handoff between windows: docs/PROGRESS.md — read it at the start of every window, update it at the end of every task.
 - UI design (the target): docs/design/curious-dictionary-desktop.dc.html
