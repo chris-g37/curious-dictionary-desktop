@@ -15,8 +15,8 @@ Publishing packs: docs/PUBLISHING-PACKS.md.
 |---|---|---|---|
 | 0 | Handoff system | done | |
 | — | Handoff v2 amendment (docs only) | done | |
-| 1 | Pack builder | built, awaiting review | 20k sample only; full-file run pending Chris's OK |
-| 1b | Release-prep script | pending | `npm run pack:release` |
+| 1 | Pack builder | done (sample verified) | full-file builds not run yet; Chris runs or approves them |
+| 1b | Release-prep script | **next** | `npm run pack:release` |
 | 2a | Electron upgrade + node:sqlite smoke test | pending | own commit; Chris hand-tests shortcuts/clipboard/tray after |
 | 2b | Resolver chain + source badge | pending | limit states 2E/2F, local daily MW call counter (number only) |
 | 3 | Main window (3A-3D, 3F autocomplete) | pending | local fonts + OFL licenses; then measure step |
@@ -70,7 +70,10 @@ Chris reads these from Task Manager (Details tab, sum of the app's processes); C
 - Known gap: ~8 of 15k sample etymologies still carry a leftover tree line.
 - Full 3.4 GB run NOT done yet.
 
-## Notes for the next window (Task 1)
+## Notes for the next window (Task 1b)
+- Task 1b needs real packs in dist-pack/*.db (not dist-pack/sample). Check they exist; if not, ask Chris to run `npm run pack:build -- --profile core` and `--profile full`, or test 1b against the sample files.
+
+## Old notes (Task 1, done)
 - Input file: `data/kaikki-english.jsonl` in the repo root (Chris downloads the English extract from kaikki.org/dictionary/English and renames it). Check it exists before starting; if not, stop and ask.
 - Builder runs on the system Node (v24.13.1 at time of writing), which has `node:sqlite` built in, so no npm dependency is needed for the builder.
 - Start with the first 20,000 lines and show the summary before the full run.
