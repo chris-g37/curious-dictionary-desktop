@@ -19,6 +19,8 @@ const {
 const path = require("path");
 const { execFile } = require("child_process");
 const Store = require("electron-store");
+const { createPack } = require("./src/engine/pack");
+const { createResolver } = require("./src/engine/resolver");
 
 let config;
 try {
@@ -37,6 +39,7 @@ const store = new Store({
     theme: "system",
     history: [],
     floatingIcon: { enabled: false, x: null, y: null, pinned: false },
+    sourceMode: "offline-first",
   },
 });
 
@@ -51,6 +54,17 @@ const INITIAL_HEIGHT = 64;
 const TOP_OFFSET_RATIO = 0.15;
 const ALLOWED_EXTERNAL_URLS = new Set(["https://dictionaryapi.com"]);
 const ICON_WINDOW_SIZE = 44;
+
+// The offline pack lives in <userData>/packs/ (curious-en-full.db preferred,
+// else curious-en-core.db). Until the download task exists it is copied there
+// by hand; if it is missing the offline source is simply unavailable.
+const pack = createPack(() => path.join(app.getPath("userData"), "packs"));
+const resolver = createResolver({
+  pack,
+  store,
+  getApiKey,
+  getSourceMode: () => (store.get("sourceMode") === "online-first" ? "online-first" : "offline-first"),
+});
 
 let barWindow = null;
 let settingsWindow = null;
@@ -292,7 +306,7 @@ function createSettingsWindow() {
 
   settingsWindow = new BrowserWindow({
     width: 480,
-    height: 420,
+    height: 500,
     resizable: false,
     show: false,
     title: "Curious Dictionary Settings",
@@ -485,9 +499,9 @@ app.whenReady().then(() => {
   });
 
   ipcMain.handle("lookup-word", async (event, word) => {
-    const result = await lookupWord(word);
+    const result = await resolver.resolve(word);
     if (result.ok && result.found) {
-      saveHistoryEntry(result);
+      saveHistoryEntry(result.entry);
     }
     return result;
   });
@@ -514,7 +528,15 @@ app.whenReady().then(() => {
   ipcMain.handle("get-settings", () => ({
     apiKey: store.get("mwApiKey", ""),
     theme: store.get("theme", "system"),
+    sourceMode: store.get("sourceMode", "offline-first"),
   }));
+
+  ipcMain.handle("save-source-mode", (event, mode) => {
+    store.set("sourceMode", mode === "online-first" ? "online-first" : "offline-first");
+    return true;
+  });
+
+  ipcMain.on("open-settings", () => createSettingsWindow());
 
   ipcMain.handle("save-api-key", (event, key) => {
     store.set("mwApiKey", (key || "").trim());
@@ -566,13 +588,14 @@ app.on("before-quit", () => {
 
 app.on("will-quit", () => {
   globalShortcut.unregisterAll();
+  pack.close();
 });
 
-function saveHistoryEntry({ entries }) {
-  const primary = entries[0];
+// History keeps words only (never definitions), whichever source answered.
+function saveHistoryEntry(found) {
   const entry = {
-    word: primary.headword,
-    partOfSpeech: primary.partOfSpeech || "",
+    word: found.word,
+    partOfSpeech: (found.parts[0] && found.parts[0].pos) || "",
     timestamp: Date.now(),
   };
   const key = entry.word.toLowerCase().replace(/·/g, "");
@@ -584,65 +607,4 @@ function saveHistoryEntry({ entries }) {
     history = history.slice(0, 50);
   }
   store.set("history", history);
-}
-
-async function lookupWord(word) {
-  const apiKey = getApiKey();
-  if (!apiKey) {
-    return {
-      ok: false,
-      error: "No API key configured. Open Settings from the tray icon and add your Merriam-Webster key.",
-    };
-  }
-
-  const url = `https://www.dictionaryapi.com/api/v3/references/collegiate/json/${encodeURIComponent(
-    word
-  )}?key=${apiKey}`;
-
-  let response;
-  try {
-    response = await fetch(url);
-  } catch (err) {
-    return { ok: false, error: "Network error — check your connection." };
-  }
-
-  if (!response.ok) {
-    return { ok: false, error: "The dictionary service returned an error." };
-  }
-
-  let data;
-  try {
-    data = await response.json();
-  } catch (err) {
-    return { ok: false, error: "Couldn't parse the dictionary response." };
-  }
-
-  if (!Array.isArray(data) || data.length === 0) {
-    return { ok: true, found: false, word, suggestions: [] };
-  }
-
-  // When MW doesn't have the word, it returns an array of suggestion strings
-  // instead of entry objects.
-  if (typeof data[0] === "string") {
-    return { ok: true, found: false, word, suggestions: data };
-  }
-
-  const entries = data
-    .filter((entry) => entry && entry.meta)
-    .map((entry) => ({
-      headword: entry.hwi && entry.hwi.hw ? entry.hwi.hw.replace(/\*/g, "·") : word,
-      pronunciation:
-        entry.hwi && entry.hwi.prs && entry.hwi.prs[0]
-          ? entry.hwi.prs[0].mw
-          : null,
-      partOfSpeech: entry.fl || null,
-      shortdef: entry.shortdef || [],
-    }))
-    .filter((entry) => entry.shortdef.length > 0);
-
-  if (entries.length === 0) {
-    return { ok: true, found: false, word, suggestions: [] };
-  }
-
-  return { ok: true, found: true, word, entries };
 }

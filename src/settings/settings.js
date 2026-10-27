@@ -69,9 +69,25 @@ clearHistoryBtn.addEventListener("click", async () => {
   }
 });
 
-window.api.getSettings().then(({ apiKey, theme }) => {
+const sourceButtons = document.querySelectorAll(".source-option");
+
+function setActiveSourceButton(mode) {
+  sourceButtons.forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.mode === mode);
+  });
+}
+
+sourceButtons.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    setActiveSourceButton(btn.dataset.mode);
+    window.api.saveSourceMode(btn.dataset.mode);
+  });
+});
+
+window.api.getSettings().then(({ apiKey, theme, sourceMode }) => {
   apiKeyInput.value = apiKey || "";
   setActiveThemeButton(theme || "system");
+  setActiveSourceButton(sourceMode || "offline-first");
 });
 
 function setFloatingIconToggleUI(enabled) {

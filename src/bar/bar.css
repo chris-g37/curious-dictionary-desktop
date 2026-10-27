@@ -10,9 +10,21 @@
   --pos-bg: #f3e7da;
   --shadow: rgba(62, 46, 35, 0.16);
   --row-hover: rgba(62, 46, 35, 0.05);
+  --sage-bg: oklch(0.935 0.03 140);
+  --sage-ink: oklch(0.4 0.06 140);
+  --sage-dot: oklch(0.58 0.09 140);
+  --terra-bg: oklch(0.94 0.03 50);
+  --terra-ink: oklch(0.42 0.1 45);
+  --terra-dot: #c1663e;
 }
 
 [data-theme="dark"] {
+  --sage-bg: oklch(0.32 0.035 140);
+  --sage-ink: oklch(0.86 0.06 140);
+  --sage-dot: oklch(0.72 0.09 140);
+  --terra-bg: oklch(0.34 0.04 50);
+  --terra-ink: oklch(0.86 0.07 55);
+  --terra-dot: oklch(0.72 0.12 50);
   --surface: #3a2e25;
   --border: #524134;
   --text-primary: #f3eae2;
@@ -185,6 +197,10 @@ body {
 }
 
 .footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   margin-top: 16px;
   padding-top: 12px;
   border-top: 1px solid var(--border);
@@ -205,27 +221,6 @@ body {
   margin: 10px 0 8px;
   font-size: 13px;
   color: var(--text-muted);
-}
-
-.suggestions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.suggestion-chip {
-  font-family: inherit;
-  font-size: 14px;
-  color: var(--pos-text);
-  background: var(--pos-bg);
-  border: none;
-  border-radius: 999px;
-  padding: 6px 14px;
-  cursor: pointer;
-}
-
-.suggestion-chip:hover {
-  filter: brightness(0.96);
 }
 
 /* ---- History list ---- */
@@ -288,4 +283,178 @@ body {
   font-size: 12px;
   color: var(--text-muted);
   white-space: nowrap;
+}
+
+/* ---- Source badge (design 2G) ---- */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 24px;
+  padding: 0 10px 0 9px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.badge-offline {
+  background: var(--sage-bg);
+  color: var(--sage-ink);
+}
+
+.badge-offline .badge-dot {
+  background: var(--sage-dot);
+}
+
+.badge-mw {
+  background: var(--terra-bg);
+  color: var(--terra-ink);
+}
+
+.badge-mw .badge-dot {
+  background: var(--terra-dot);
+}
+
+.counter {
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-size: 10.5px;
+  color: var(--text-muted);
+}
+
+/* ---- Entry extras ---- */
+
+.example {
+  display: block;
+  margin-top: 3px;
+  font-family: "Fraunces", Georgia, serif;
+  font-style: italic;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.redirect-note {
+  margin: -6px 0 14px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+/* ---- Notice banner (design 2E): bleeds to the card edges ---- */
+
+.notice {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: -20px -22px 16px;
+  padding: 12px 18px;
+  border-radius: 13px 13px 0 0;
+  background: var(--terra-bg);
+  color: var(--terra-ink);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.notice svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+/* ---- Near matches (design 2D) ---- */
+
+.not-found em {
+  font-family: "Fraunces", Georgia, serif;
+  color: var(--numeral);
+}
+
+.suggestion-list {
+  display: flex;
+  flex-direction: column;
+  margin: 6px -10px 0;
+}
+
+.suggestion-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.suggestion-row:hover {
+  background: var(--row-hover);
+}
+
+.suggestion-word {
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 16px;
+  color: var(--text-primary);
+}
+
+.suggestion-pos {
+  font-size: 11.5px;
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+.primary-btn {
+  height: 32px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 9px;
+  background: #c1663e;
+  color: #faf7f2;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.primary-btn:hover {
+  background: #a9542f;
+}
+
+/* ---- Loading skeleton (design 2C) ---- */
+
+.sk-line {
+  height: 11px;
+  margin-top: 10px;
+  border-radius: 4px;
+  background: var(--row-hover);
+}
+
+.sk-title {
+  height: 30px;
+  width: 170px;
+  margin: 0 0 18px;
+  border-radius: 6px;
+}
+
+.sk-pos {
+  width: 56px;
+  height: 10px;
+  background: rgba(193, 102, 62, 0.22);
+}
+
+.sk-w86 {
+  width: 86%;
+}
+
+.sk-w64 {
+  width: 64%;
+}
+
+.loading-text {
+  font-size: 11.5px;
 }

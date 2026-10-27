@@ -18,8 +18,8 @@ Publishing packs: docs/PUBLISHING-PACKS.md.
 | 1 | Pack builder | done | full core + full packs built; checked with tools/lookup.js |
 | 1b | Release-prep script | done | `npm run pack:release`; not yet uploaded to GitHub |
 | 2a | Electron upgrade + node:sqlite smoke test | done, awaiting Chris's hand-test | own commit; Chris hand-tests shortcuts/clipboard/tray after |
-| 2b | Resolver chain + source badge | **next** (after 2a hand-test) | limit states 2E/2F, local daily MW call counter (number only) |
-| 1c | Commonness ranking | pending | before Task 3 (autocomplete). Propose BOTH options with licensing, Chris picks; verify any list's license first |
+| 2b | Resolver chain + source badge | done, awaiting Chris's review | limit states 2E/2F, local daily MW call counter (number only) |
+| 1c | Commonness ranking | **next** | before Task 3 (autocomplete). Propose BOTH options with licensing, Chris picks; verify any list's license first |
 | 3 | Main window (3A-3D, 3F autocomplete) | pending | local fonts + OFL licenses; then measure step |
 | 4 | Interlinking + Saved (2A, 2B, 3E, 3G) | pending | add Copy / Pin / History to the bar |
 | 5 | Settings / About (4A, 4B, 5A) + README | pending | version 2.0.0; panes in main window; retire old settings window |
@@ -87,8 +87,19 @@ Chris reads these from Task Manager (Details tab, sum of the app's processes); C
 - Not verified by me, for Chris to hand-test: Ctrl+Shift+Space, Ctrl+Shift+D (select text in another app -> bar fills in, and your clipboard is unchanged afterwards), tray icon + menu, settings window, theme switch, history persists. Quit the installed app first.
 - Not done: did not build or launch the packaged exe.
 
-## Notes for the next window (Task 2b)
-- Start after Chris confirms the 2a hand-test. node:sqlite is available in main (Node 24). Clipboard code must use the async API.
+### Task 2b — Resolver chain + source badge
+- New src/engine/: pack.js (node:sqlite reader: lookup with redirects, near-match suggestions), mw.js (MW fetch, normalized), resolver.js (offline-first / online-first, daily MW counter, limit states). main.js lookup-word now calls resolver.resolve; old lookupWord removed.
+- Normalized entry: { word, source, sourceLabel, pronunciation, parts:[{pos,senses:[{text,example}]}], etymology?, redirectedFrom? }. Results also carry notice (2E / offline) and limit+noPack (2F).
+- Pack path: <userData>/packs/ (full preferred, else core). Dev userData is %APPDATA%curious-dictionary-desktop; the INSTALLED app uses %APPDATA%Curious Dictionary, so a pack must be copied into whichever one is being run. I copied curious-en-core.db into the dev folder for testing.
+- Setting sourceMode (store default "offline-first"); added a "Lookup order" toggle to the existing settings window so it can be tested (Task 5 moves it).
+- MW call counter: store key mwCalls = { date (US Eastern), count }, nothing else. Pinned to 1,000 when MW reports the limit.
+- Bar UI: sage/terracotta source badge replaces the hardcoded footer, loading skeleton (only if a lookup takes >150 ms), near-match list, 2E banner with counter, 2F card with Open settings. All dictionary text is now HTML-escaped. The bar shows at most 4 parts x 3 senses (full entry belongs to the main window).
+- Tests: node tools/test-resolver.js (17 cases, fake fetch, real pack) all pass; app-level check under npm start via a probe: petrichor, ran->run, petrikor near-matches render correctly.
+- UNVERIFIED / assumptions: MW's real over-quota response is undocumented; I treat HTTP 429 or a plain-text body mentioning limit/quota as the limit, plus the local 1,000 counter. Visual polish (screenshots) not checked by me; fonts are still system fallbacks until Task 3. Online-first and the MW path were only tested with a fake fetch, not the real API.
+- Suggestions are prefix-based and unranked by commonness (petrikor offers "petrific, Petri net"...), which is what Task 1c is for.
+
+## Notes for the next window (Task 1c)
+- Propose BOTH options with licensing, verify any list's license text, let Chris pick before implementing.
 
 ## Old notes (Task 1, done)
 - Input file: `data/kaikki-english.jsonl` in the repo root (Chris downloads the English extract from kaikki.org/dictionary/English and renames it). Check it exists before starting; if not, stop and ask.

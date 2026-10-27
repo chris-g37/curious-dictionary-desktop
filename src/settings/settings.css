@@ -123,7 +123,8 @@ input[type="text"]:focus {
   gap: 8px;
 }
 
-.theme-option {
+.theme-option,
+.source-option {
   flex: 1;
   height: 36px;
   border: 1px solid var(--border);
@@ -135,7 +136,8 @@ input[type="text"]:focus {
   cursor: pointer;
 }
 
-.theme-option.active {
+.theme-option.active,
+.source-option.active {
   border-color: var(--accent);
   color: var(--pos-text);
   background: var(--pos-bg);

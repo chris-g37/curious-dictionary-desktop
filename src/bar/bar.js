@@ -20,10 +20,6 @@ function reportSize() {
   window.api.resizeBar(appEl.scrollHeight);
 }
 
-function stripTags(text) {
-  return text.replace(/\{[^}]*\}/g, "");
-}
-
 function formatRelativeTime(timestamp) {
   const diffMs = Date.now() - timestamp;
   const minutes = Math.floor(diffMs / 60000);
@@ -35,21 +31,67 @@ function formatRelativeTime(timestamp) {
   return `${days} day${days === 1 ? "" : "s"} ago`;
 }
 
-function renderEntries(word, entries) {
-  const first = entries[0];
-  const pronHtml = first.pronunciation
-    ? `<span class="pron">\\${first.pronunciation}\\</span>`
+// Everything shown comes from a dictionary (MW or Wiktionary) or the user's
+// own typing, so it is escaped before going into innerHTML.
+function esc(text) {
+  return String(text == null ? "" : text)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+// The bar is a quick look; the full entry is for the main window (Task 3/4).
+const MAX_PARTS = 4;
+const MAX_SENSES = 3;
+
+function badgeHtml(source, label) {
+  return `<span class="badge badge-${source === "mw" ? "mw" : "offline"}"><span class="badge-dot"></span>${esc(label)}</span>`;
+}
+
+function footerHtml(source, label, extraHtml = "") {
+  return `<div class="footer">${badgeHtml(source, label)}${extraHtml}</div>`;
+}
+
+function noticeHtml(notice) {
+  if (!notice) return "";
+  return `
+    <div class="notice notice-${esc(notice.kind)}">
+      <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+        <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8" />
+        <path d="M12 7v6M12 16.5v.5" fill="none" stroke="currentColor" stroke-width="1.8" />
+      </svg>
+      <span>${esc(notice.text)}</span>
+    </div>
+  `;
+}
+
+function counterHtml(notice) {
+  return notice && notice.kind === "limit"
+    ? `<span class="counter">${notice.count.toLocaleString()} / ${notice.max.toLocaleString()}</span>`
+    : "";
+}
+
+function renderEntry(entry, notice) {
+  const pronHtml = entry.pronunciation ? `<span class="pron">${esc(entry.pronunciation)}</span>` : "";
+  const fromHtml = entry.redirectedFrom
+    ? `<p class="redirect-note">“${esc(entry.redirectedFrom)}” is a form of “${esc(entry.word)}”</p>`
     : "";
 
-  const entriesHtml = entries
-    .map((entry) => {
-      const posHtml = entry.partOfSpeech
-        ? `<span class="pos-pill">${entry.partOfSpeech}</span>`
-        : "";
-      const defsHtml = entry.shortdef
+  const partsHtml = entry.parts
+    .slice(0, MAX_PARTS)
+    .map((part) => {
+      const posHtml = part.pos ? `<span class="pos-pill">${esc(part.pos)}</span>` : "";
+      const defsHtml = part.senses
+        .slice(0, MAX_SENSES)
         .map(
-          (def, i) =>
-            `<li><span class="num">${i + 1}</span><span>${stripTags(def)}</span></li>`
+          (sense, i) => `
+            <li>
+              <span class="num">${i + 1}</span>
+              <span>${esc(sense.text)}${
+                sense.example ? `<span class="example">“${esc(sense.example)}”</span>` : ""
+              }</span>
+            </li>`
         )
         .join("");
       return `
@@ -63,24 +105,32 @@ function renderEntries(word, entries) {
 
   resultEl.innerHTML = `
     <div class="card">
+      ${noticeHtml(notice)}
       <div class="card-header">
-        <h1 class="headword">${first.headword}</h1>
+        <h1 class="headword">${esc(entry.word)}</h1>
         ${pronHtml}
       </div>
-      ${entriesHtml}
-      <div class="footer">Merriam-Webster Collegiate</div>
+      ${fromHtml}
+      ${partsHtml}
+      ${footerHtml(entry.source, entry.sourceLabel, counterHtml(notice))}
     </div>
   `;
 }
 
-function renderNotFound(word, suggestions) {
+function renderNotFound(response) {
   const suggestionsHtml =
-    suggestions.length > 0
+    response.suggestions.length > 0
       ? `
-        <p class="hint">Did you mean:</p>
-        <div class="suggestions">
-          ${suggestions
-            .map((s) => `<button class="suggestion-chip" type="button">${s}</button>`)
+        <p class="hint">Did you mean</p>
+        <div class="suggestion-list">
+          ${response.suggestions
+            .map(
+              (s) => `
+                <button class="suggestion-row" type="button" data-word="${esc(s.word)}">
+                  <span class="suggestion-word">${esc(s.word)}</span>
+                  ${s.pos ? `<span class="suggestion-pos">${esc(s.pos)}</span>` : ""}
+                </button>`
+            )
             .join("")}
         </div>
       `
@@ -88,27 +138,67 @@ function renderNotFound(word, suggestions) {
 
   resultEl.innerHTML = `
     <div class="card">
-      <p class="not-found">No entry found for "${word}".</p>
+      ${noticeHtml(response.notice)}
+      <p class="not-found">No entry for <em>${esc(response.word)}</em></p>
       ${suggestionsHtml}
-      <div class="footer">Merriam-Webster Collegiate</div>
+      ${footerHtml(response.source, response.sourceLabel, counterHtml(response.notice))}
     </div>
   `;
 
-  resultEl.querySelectorAll(".suggestion-chip").forEach((chip) => {
-    chip.addEventListener("click", () => {
-      input.value = chip.textContent;
+  resultEl.querySelectorAll(".suggestion-row").forEach((row) => {
+    row.addEventListener("click", () => {
+      input.value = row.dataset.word.replace(/·/g, "");
       runLookup();
     });
+  });
+}
+
+// Design 2F: the daily limit is spent and there is no pack to fall back on.
+function renderLimitNoPack(response) {
+  resultEl.innerHTML = `
+    <div class="card">
+      <p class="not-found">Daily lookup limit reached</p>
+      <p class="hint">
+        The Merriam-Webster free tier allows ${response.max.toLocaleString()} lookups a day. It
+        refreshes at midnight ET. Install the offline pack to keep looking up words.
+      </p>
+      <div class="footer">
+        <span class="counter">${response.count.toLocaleString()} / ${response.max.toLocaleString()} today</span>
+        <button id="open-settings" class="primary-btn" type="button">Open settings</button>
+      </div>
+    </div>
+  `;
+  document.getElementById("open-settings").addEventListener("click", () => {
+    window.api.openSettings();
+    window.api.hideBar();
   });
 }
 
 function renderError(message) {
   resultEl.innerHTML = `
     <div class="card">
-      <p class="error-message">${message}</p>
+      <p class="error-message">${esc(message)}</p>
     </div>
   `;
 }
+
+// Design 2C. Offline lookups answer in a few ms, so the skeleton only appears
+// if a lookup is still pending after a short delay (avoids a flash).
+function renderLoading() {
+  resultEl.innerHTML = `
+    <div class="card skeleton">
+      <div class="sk-line sk-title"></div>
+      <div class="sk-line sk-pos"></div>
+      <div class="sk-line"></div>
+      <div class="sk-line sk-w86"></div>
+      <div class="sk-line sk-w64"></div>
+      <div class="footer"><span class="loading-text">Looking up…</span></div>
+    </div>
+  `;
+  reportSize();
+}
+
+let lookupSeq = 0;
 
 async function runLookup() {
   const word = input.value.trim();
@@ -117,14 +207,29 @@ async function runLookup() {
   historyEl.innerHTML = "";
   clearHint();
 
-  const response = await window.api.lookupWord(word);
+  // Ignore replies from an older lookup if the user searched again meanwhile.
+  const seq = ++lookupSeq;
+  const loadingTimer = setTimeout(() => {
+    if (seq === lookupSeq) renderLoading();
+  }, 150);
+
+  let response;
+  try {
+    response = await window.api.lookupWord(word);
+  } catch (err) {
+    response = { ok: false, error: "Something went wrong during the lookup." };
+  }
+  clearTimeout(loadingTimer);
+  if (seq !== lookupSeq) return;
 
   if (!response.ok) {
     renderError(response.error);
+  } else if (response.limit) {
+    renderLimitNoPack(response);
   } else if (!response.found) {
-    renderNotFound(response.word, response.suggestions);
+    renderNotFound(response);
   } else {
-    renderEntries(response.word, response.entries);
+    renderEntry(response.entry, response.notice);
   }
 
   reportSize();
@@ -141,10 +246,10 @@ async function showHistory() {
   historyEl.innerHTML = items
     .map(
       (item) => `
-        <div class="history-item" data-word="${item.word}">
-          <span class="history-word">${item.word}</span>
+        <div class="history-item" data-word="${esc(item.word)}">
+          <span class="history-word">${esc(item.word)}</span>
           <span class="history-meta">
-            ${item.partOfSpeech ? `<span class="history-pos">${item.partOfSpeech}</span>` : ""}
+            ${item.partOfSpeech ? `<span class="history-pos">${esc(item.partOfSpeech)}</span>` : ""}
             <span class="history-time">${formatRelativeTime(item.timestamp)}</span>
           </span>
         </div>

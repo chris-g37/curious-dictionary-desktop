@@ -16,6 +16,8 @@ contextBridge.exposeInMainWorld("api", {
 
   getSettings: () => ipcRenderer.invoke("get-settings"),
   saveApiKey: (key) => ipcRenderer.invoke("save-api-key", key),
+  saveSourceMode: (mode) => ipcRenderer.invoke("save-source-mode", mode),
+  openSettings: () => ipcRenderer.send("open-settings"),
   saveTheme: (theme) => ipcRenderer.invoke("save-theme", theme),
   openExternal: (url) => ipcRenderer.invoke("open-external", url),
 
