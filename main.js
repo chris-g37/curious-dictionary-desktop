@@ -14,6 +14,7 @@ const {
   shell,
   dialog,
   clipboard,
+  ClipboardItem,
 } = require("electron");
 const path = require("path");
 const { execFile } = require("child_process");
@@ -194,24 +195,35 @@ function sendCtrlC() {
 // from Explorer — readText() comes back empty while availableFormats()
 // isn't, so isText is false and restoreClipboardSnapshot below skips the
 // write entirely rather than guessing how to reconstruct it.
-function captureClipboardSnapshot() {
-  const formats = clipboard.availableFormats();
-  const text = clipboard.readText();
-  const isText = formats.length === 0 || text.length > 0;
-  return {
-    isText,
-    text,
-    html: isText ? clipboard.readHTML() : null,
-  };
+async function captureClipboardSnapshot() {
+  // Electron 45 made the clipboard API async and W3C-shaped: read() resolves
+  // with ClipboardItems, and each item hands back a Blob per MIME type.
+  let items = [];
+  try {
+    items = await clipboard.read();
+  } catch (err) {
+    // Nothing readable on the clipboard; treat it like an empty one.
+  }
+  let text = "";
+  let html = "";
+  for (const item of items) {
+    if (!text && item.types.includes("text/plain")) {
+      text = await (await item.getType("text/plain")).text();
+    }
+    if (!html && item.types.includes("text/html")) {
+      html = await (await item.getType("text/html")).text();
+    }
+  }
+  const isEmpty = items.every((item) => item.types.length === 0);
+  const isText = isEmpty || text.length > 0;
+  return { isText, text, html: isText ? html : null };
 }
 
-function restoreClipboardSnapshot(snapshot) {
+async function restoreClipboardSnapshot(snapshot) {
   if (!snapshot.isText) return;
-  if (snapshot.html) {
-    clipboard.write({ text: snapshot.text, html: snapshot.html });
-  } else {
-    clipboard.writeText(snapshot.text);
-  }
+  const data = { "text/plain": snapshot.text };
+  if (snapshot.html) data["text/html"] = snapshot.html;
+  await clipboard.write([new ClipboardItem(data)]);
 }
 
 // trim -> first word only -> strip surrounding punctuation -> lowercase ->
@@ -230,7 +242,7 @@ function sanitizeSelection(raw) {
 
 async function handleSelectionHotkey() {
   // 1. Save whatever is on the clipboard right now.
-  const before = captureClipboardSnapshot();
+  const before = await captureClipboardSnapshot();
 
   // 2. Ask the OS to send Ctrl+C to the still-focused foreground window.
   const sendOk = await sendCtrlC();
@@ -240,11 +252,11 @@ async function handleSelectionHotkey() {
   await sleep(150);
 
   // 4. Read whatever landed there.
-  const after = captureClipboardSnapshot();
+  const after = await captureClipboardSnapshot();
 
   // 5. Put the user's original clipboard contents back, immediately —
   // before we do anything else with the grabbed text.
-  restoreClipboardSnapshot(before);
+  await restoreClipboardSnapshot(before);
 
   const grabbedNewText = sendOk && after.text.length > 0 && after.text !== before.text;
 

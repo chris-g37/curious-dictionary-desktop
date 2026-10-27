@@ -17,8 +17,8 @@ Publishing packs: docs/PUBLISHING-PACKS.md.
 | — | Handoff v2 amendment (docs only) | done | |
 | 1 | Pack builder | done | full core + full packs built; checked with tools/lookup.js |
 | 1b | Release-prep script | done | `npm run pack:release`; not yet uploaded to GitHub |
-| 2a | Electron upgrade + node:sqlite smoke test | **next** | own commit; Chris hand-tests shortcuts/clipboard/tray after |
-| 2b | Resolver chain + source badge | pending | limit states 2E/2F, local daily MW call counter (number only) |
+| 2a | Electron upgrade + node:sqlite smoke test | done, awaiting Chris's hand-test | own commit; Chris hand-tests shortcuts/clipboard/tray after |
+| 2b | Resolver chain + source badge | **next** (after 2a hand-test) | limit states 2E/2F, local daily MW call counter (number only) |
 | 1c | Commonness ranking | pending | before Task 3 (autocomplete). Propose BOTH options with licensing, Chris picks; verify any list's license first |
 | 3 | Main window (3A-3D, 3F autocomplete) | pending | local fonts + OFL licenses; then measure step |
 | 4 | Interlinking + Saved (2A, 2B, 3E, 3G) | pending | add Copy / Pin / History to the bar |
@@ -79,9 +79,16 @@ Chris reads these from Task Manager (Details tab, sum of the app's processes); C
 - Result: core 140.4 MB -> 65.1 MB gz, full 172.2 MB -> 76.3 MB gz, both v2026.10.26, ~80 s. Decompressed core gz hashes to the manifest sha256.
 - NOTICE.txt also carries the Fetchmate credit line (small addition, flag if unwanted).
 
-## Notes for the next window (Task 2a)
-- Packs are built and release-prepped locally (dist-pack/release/). Uploading to the `packs` GitHub Release is Chris's call (docs/PUBLISHING-PACKS.md); nothing in 2a depends on it.
-- Task 2a is its own commit; do not package or launch the exe.
+### Task 2a — Electron upgrade + node:sqlite smoke test
+- Electron 31.7.7 -> 45.0.0 (latest stable; bundles Node 24.22.0, Chromium 156). electron-store 8.2.0 and electron-builder 26.18 unchanged. package.json and package-lock.json updated.
+- Smoke test (tools/smoke-sqlite.js, run with `npx electron tools/smoke-sqlite.js`, runs as Electron main): node:sqlite works; create/insert/prefix range query OK; FTS5 also works (not needed, Decision E); the real core pack opens read-only and answers a prefix query.
+- BREAK found and fixed: Electron 45's clipboard is async and W3C-shaped (readText/writeText return Promises; readHTML/availableFormats are gone). main.js captureClipboardSnapshot/restoreClipboardSnapshot rewritten with clipboard.read()/write() + ClipboardItem and awaited in handleSelectionHotkey. Round-trip (text+html, empty clipboard) verified with a probe.
+- Checked under `npm start`: boots, bar + icon windows created, no JS errors. Chromium cache "Access is denied" log lines appeared because the INSTALLED Curious Dictionary was running at the same time (it also holds the global shortcuts, so shortcut registration could not be verified by me; I did not touch that process).
+- Not verified by me, for Chris to hand-test: Ctrl+Shift+Space, Ctrl+Shift+D (select text in another app -> bar fills in, and your clipboard is unchanged afterwards), tray icon + menu, settings window, theme switch, history persists. Quit the installed app first.
+- Not done: did not build or launch the packaged exe.
+
+## Notes for the next window (Task 2b)
+- Start after Chris confirms the 2a hand-test. node:sqlite is available in main (Node 24). Clipboard code must use the async API.
 
 ## Old notes (Task 1, done)
 - Input file: `data/kaikki-english.jsonl` in the repo root (Chris downloads the English extract from kaikki.org/dictionary/English and renames it). Check it exists before starting; if not, stop and ask.
