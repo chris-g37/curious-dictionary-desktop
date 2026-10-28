@@ -11,6 +11,12 @@ contextBridge.exposeInMainWorld("api", {
   onBarShown: (callback) =>
     ipcRenderer.on("bar-shown", (event, payload) => callback(payload)),
 
+  completeWord: (prefix) => ipcRenderer.invoke("complete-word", prefix),
+  getPackStatus: () => ipcRenderer.invoke("get-pack-status"),
+  getHistory: () => ipcRenderer.invoke("get-history"),
+  copyText: (text) => ipcRenderer.invoke("copy-text", text),
+  onHistoryChanged: (callback) => ipcRenderer.on("history-changed", () => callback()),
+
   getRecentHistory: () => ipcRenderer.invoke("get-recent-history"),
   requestClearHistory: () => ipcRenderer.invoke("request-clear-history"),
 

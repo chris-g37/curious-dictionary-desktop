@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:"
+    />
+    <title>Curious Dictionary</title>
+    <link rel="stylesheet" href="../fonts/fonts.css" />
+    <link rel="stylesheet" href="main.css" />
+  </head>
+  <body>
+    <div id="window">
+      <aside id="sidebar">
+        <div class="brand">
+          <div class="brand-mark">
+            <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
+              <path d="M4 3h13a3 3 0 013 3v15l-4-2-4 2-4-2-4 2V3z" fill="currentColor" />
+            </svg>
+          </div>
+          <span class="brand-name">Curious <i>Dictionary</i></span>
+        </div>
+
+        <button id="nav-lookup" class="nav-item active" type="button">
+          <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="1.7" />
+            <path d="M20 20l-3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.7" />
+          </svg>
+          Look up
+        </button>
+
+        <div class="spacer"></div>
+
+        <div id="pack-card" class="pack-card">
+          <div class="pack-title"><span id="pack-dot" class="dot"></span><span id="pack-title">Offline pack</span></div>
+          <div id="pack-meta" class="pack-meta"></div>
+        </div>
+      </aside>
+
+      <div id="column">
+        <div id="scroll" class="hero">
+          <div id="hero">
+            <h1>Look up your <i>first word</i>.</h1>
+            <p>A quiet dictionary that lives in the corner of your screen. Works offline from the start.</p>
+          </div>
+
+          <div id="searchwrap">
+            <div id="search" role="combobox" aria-expanded="false" aria-owns="dropdown">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" class="search-icon">
+                <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="1.8" />
+                <path d="M20 20l-3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.8" />
+              </svg>
+              <div class="input-stack">
+                <div id="ghost" aria-hidden="true"><span id="ghost-typed"></span><span id="ghost-rest"></span></div>
+                <input
+                  id="search-input"
+                  type="text"
+                  placeholder="Look up a word…"
+                  autocomplete="off"
+                  spellcheck="false"
+                  aria-autocomplete="list"
+                />
+              </div>
+              <button id="clear-btn" class="icon-btn" type="button" aria-label="Clear" hidden>
+                <svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true">
+                  <path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" />
+                </svg>
+              </button>
+              <kbd id="slash-key">/</kbd>
+            </div>
+            <div id="dropdown" role="listbox" hidden></div>
+          </div>
+
+          <div id="press-hint">or press<kbd>Ctrl ⇧ Space</kbd>from anywhere</div>
+          <div id="content"></div>
+        </div>
+
+        <footer>
+          <a id="credit" href="https://services.fetchmate.tech">
+            Built by Fetchmate Chief Technologies
+            <svg viewBox="0 0 24 24" width="9" height="9" aria-hidden="true">
+              <path d="M7 17L17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="2.2" />
+            </svg>
+          </a>
+          <span id="footer-note"></span>
+        </footer>
+      </div>
+    </div>
+    <script src="main.js"></script>
+  </body>
+</html>

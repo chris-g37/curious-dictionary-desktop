@@ -76,6 +76,20 @@ function createPack(getPackDir) {
     openFile = null;
   }
 
+  // Small facts for the UI ("412,806 words · EN"); null when no pack is installed.
+  function info() {
+    const q = open();
+    if (!q) return null;
+    const meta = {};
+    for (const r of db.prepare("SELECT key, value FROM meta").all()) meta[r.key] = r.value;
+    return {
+      language: meta.language || "en",
+      profile: meta.profile || "",
+      version: meta.version || "",
+      entries: Number(meta.entry_count) || 0,
+    };
+  }
+
   function isAvailable() {
     return open() !== null;
   }
@@ -168,7 +182,7 @@ function createPack(getPackDir) {
     return [];
   }
 
-  return { isAvailable, lookup, suggest, complete, close };
+  return { isAvailable, info, lookup, suggest, complete, close };
 }
 
 module.exports = { createPack, SOURCE_LABEL };

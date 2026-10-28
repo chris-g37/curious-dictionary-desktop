@@ -52,7 +52,22 @@ if (!store.get("mwApiKey") && config.MW_API_KEY) {
 const BAR_WIDTH = 640;
 const INITIAL_HEIGHT = 64;
 const TOP_OFFSET_RATIO = 0.15;
-const ALLOWED_EXTERNAL_URLS = new Set(["https://dictionaryapi.com"]);
+// Only https links to these hosts may be opened in the user's browser.
+const ALLOWED_EXTERNAL_HOSTS = new Set([
+  "services.fetchmate.tech",
+  "en.wiktionary.org",
+  "kaikki.org",
+  "dictionaryapi.com",
+]);
+
+function isAllowedExternalUrl(url) {
+  try {
+    const u = new URL(url);
+    return u.protocol === "https:" && ALLOWED_EXTERNAL_HOSTS.has(u.hostname);
+  } catch (err) {
+    return false;
+  }
+}
 const ICON_WINDOW_SIZE = 44;
 
 // The offline pack lives in <userData>/packs/ (curious-en-full.db preferred,
@@ -68,6 +83,7 @@ const resolver = createResolver({
 
 let barWindow = null;
 let settingsWindow = null;
+let mainWindow = null;
 let iconWindow = null;
 let tray = null;
 let isQuitting = false;
@@ -333,6 +349,51 @@ function createSettingsWindow() {
   });
 }
 
+// The full-size window. It is created on demand and DESTROYED when closed
+// (never hidden), so it costs no RAM while the app idles in the tray.
+function createMainWindow() {
+  if (mainWindow) {
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.show();
+    mainWindow.focus();
+    return mainWindow;
+  }
+
+  const isDark = getEffectiveTheme() === "dark";
+  mainWindow = new BrowserWindow({
+    width: 960,
+    height: 640,
+    minWidth: 720,
+    minHeight: 480,
+    show: false,
+    title: "Curious Dictionary",
+    icon: path.join(__dirname, "assets", "icons", "app-icon-256.png"),
+    backgroundColor: isDark ? "#2A211B" : "#FAF7F2",
+    autoHideMenuBar: true,
+    webPreferences: {
+      preload: path.join(__dirname, "preload.js"),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+    },
+  });
+
+  mainWindow.setMenuBarVisibility(false);
+  // The page never navigates or opens windows itself; links go through the
+  // allowlisted open-external IPC.
+  mainWindow.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
+  mainWindow.webContents.on("will-navigate", (event) => event.preventDefault());
+
+  mainWindow.loadFile(path.join(__dirname, "src", "main-window", "index.html"), {
+    query: { theme: getEffectiveTheme() },
+  });
+  mainWindow.once("ready-to-show", () => mainWindow.show());
+  mainWindow.on("closed", () => {
+    mainWindow = null;
+  });
+  return mainWindow;
+}
+
 function getDefaultFloatingIconPosition() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
   return {
@@ -448,6 +509,7 @@ function createTray() {
 
   tray.setContextMenu(
     Menu.buildFromTemplate([
+      { label: "Open Curious", click: createMainWindow },
       { label: "Search (Ctrl+Shift+Space)", click: toggleBar },
       { label: "Settings", click: createSettingsWindow },
       { type: "separator" },
@@ -470,6 +532,9 @@ function broadcastTheme() {
   });
   if (settingsWindow) {
     settingsWindow.setBackgroundColor(bgForWindows);
+  }
+  if (mainWindow) {
+    mainWindow.setBackgroundColor(theme === "dark" ? "#2A211B" : "#FAF7F2");
   }
 }
 
@@ -502,8 +567,25 @@ app.whenReady().then(() => {
     const result = await resolver.resolve(word);
     if (result.ok && result.found) {
       saveHistoryEntry(result.entry);
+      if (mainWindow) mainWindow.webContents.send("history-changed");
     }
     return result;
+  });
+
+  // Main window: autocomplete, pack status, full history, copy.
+  ipcMain.handle("complete-word", (event, prefix) => {
+    if (typeof prefix !== "string") return [];
+    return pack.complete(prefix.trim().toLowerCase().slice(0, 40), 6);
+  });
+
+  ipcMain.handle("get-pack-status", () => pack.info());
+
+  ipcMain.handle("get-history", () => store.get("history", []));
+
+  ipcMain.handle("copy-text", async (event, text) => {
+    if (typeof text === "string" && text.length < 20000) {
+      await clipboard.writeText(text);
+    }
   });
 
   ipcMain.handle("get-recent-history", () => store.get("history", []).slice(0, 8));
@@ -553,7 +635,7 @@ app.whenReady().then(() => {
   ipcMain.handle("get-effective-theme", () => getEffectiveTheme());
 
   ipcMain.handle("open-external", (event, url) => {
-    if (ALLOWED_EXTERNAL_URLS.has(url)) {
+    if (typeof url === "string" && isAllowedExternalUrl(url)) {
       shell.openExternal(url);
     }
   });
