@@ -17,6 +17,14 @@ contextBridge.exposeInMainWorld("api", {
   copyText: (text) => ipcRenderer.invoke("copy-text", text),
   onHistoryChanged: (callback) => ipcRenderer.on("history-changed", () => callback()),
 
+  getSaved: () => ipcRenderer.invoke("get-saved"),
+  isSaved: (word) => ipcRenderer.invoke("is-saved", word),
+  toggleSaved: (word) => ipcRenderer.invoke("toggle-saved", word),
+  removeSaved: (word) => ipcRenderer.invoke("remove-saved", word),
+  openInMainWindow: (word) => ipcRenderer.send("open-in-main-window", word),
+  onSavedChanged: (callback) => ipcRenderer.on("saved-changed", () => callback()),
+  onShowWord: (callback) => ipcRenderer.on("show-word", (event, word) => callback(word)),
+
   getRecentHistory: () => ipcRenderer.invoke("get-recent-history"),
   requestClearHistory: () => ipcRenderer.invoke("request-clear-history"),
 

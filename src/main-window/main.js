@@ -38,9 +38,22 @@ let packReady = false;
 
 // ---- Layout ---------------------------------------------------------------
 
+let view = "lookup"; // "lookup" | "saved"
+
 function applyLayout() {
   // First launch (nothing ever looked up) gets the centered welcome.
-  scrollEl.classList.toggle("hero", history.length === 0 && !hasContent);
+  scrollEl.classList.toggle("hero", view === "lookup" && history.length === 0 && !hasContent);
+  scrollEl.classList.toggle("view-saved", view === "saved");
+  document.getElementById("nav-lookup").classList.toggle("active", view === "lookup");
+  document.getElementById("nav-saved").classList.toggle("active", view === "saved");
+}
+
+function showLookupView() {
+  if (view === "lookup") return;
+  view = "lookup";
+  hasContent = false;
+  contentEl.innerHTML = "";
+  applyLayout();
 }
 
 function setFooterNote(text) {
@@ -129,8 +142,83 @@ function renderRecents() {
 
 async function refreshHistory() {
   history = (await window.api.getHistory()) || [];
+  if (view !== "lookup") return;
   if (!hasContent) renderRecents();
   else applyLayout();
+}
+
+// ---- Saved (3G) -------------------------------------------------------------
+// The saved list lives in the main process; this view just asks for it.
+
+let savedSort = "recent"; // "recent" | "az"
+
+function formatSavedDate(ts) {
+  return new Date(ts).toLocaleDateString([], { month: "short", day: "numeric" });
+}
+
+async function refreshSavedCount() {
+  const saved = await window.api.getSaved();
+  document.getElementById("saved-count").textContent = saved.length ? String(saved.length) : "";
+  return saved;
+}
+
+async function renderSaved() {
+  const saved = await refreshSavedCount();
+  if (view !== "saved") return;
+  const rows = saved.slice();
+  if (savedSort === "az") rows.sort((a, b) => a.word.localeCompare(b.word));
+
+  contentEl.innerHTML = `
+    <div class="saved-head">
+      <div class="saved-title"><h1>Saved</h1><span>${saved.length} ${saved.length === 1 ? "word" : "words"}</span></div>
+      <div class="seg">
+        <button type="button" data-sort="recent" class="${savedSort === "recent" ? "on" : ""}">Recent</button>
+        <button type="button" data-sort="az" class="${savedSort === "az" ? "on" : ""}">A–Z</button>
+      </div>
+    </div>
+    ${
+      rows.length === 0
+        ? `<p class="saved-empty">Nothing saved yet. Use the bookmark button on a result to keep a word here.</p>`
+        : `<div class="saved-list">${rows
+            .map(
+              (s) => `
+        <div class="saved-row" data-word="${esc(s.word)}">
+          <span class="saved-word">${esc(s.word)}</span>
+          <span class="saved-gloss">${esc(s.gloss || "")}</span>
+          <span class="saved-date">${esc(formatSavedDate(s.savedAt))}</span>
+          <button class="remove-btn" type="button" title="Remove" data-remove="${esc(s.word)}">
+            <svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" /></svg>
+          </button>
+        </div>`
+            )
+            .join("")}</div>`
+    }
+  `;
+  contentEl.querySelectorAll(".seg button").forEach((b) =>
+    b.addEventListener("click", () => {
+      savedSort = b.dataset.sort;
+      renderSaved();
+    })
+  );
+  contentEl.querySelectorAll(".saved-row").forEach((row) =>
+    row.addEventListener("click", () => openWord(row.dataset.word))
+  );
+  contentEl.querySelectorAll(".remove-btn").forEach((b) =>
+    b.addEventListener("click", (event) => {
+      event.stopPropagation();
+      window.api.removeSaved(b.dataset.remove);
+    })
+  );
+  setFooterNote("");
+}
+
+function showSavedView() {
+  view = "saved";
+  hasContent = true;
+  lookupSeq++; // drop any lookup still in flight
+  closeDropdown();
+  applyLayout();
+  renderSaved();
 }
 
 // ---- Result rendering -----------------------------------------------------
@@ -214,6 +302,7 @@ function renderEntry(entry, notice) {
       </div>
       <div class="actions">
         <button id="copy-btn" class="btn" type="button">Copy</button>
+        <button id="pin-btn" class="btn" type="button">Save</button>
       </div>
     </div>
     ${partsHtml}
@@ -232,8 +321,22 @@ function renderEntry(entry, notice) {
       copyBtn.textContent = "Copy";
     }, 1500);
   });
+  document.getElementById("pin-btn").addEventListener("click", () => window.api.toggleSaved(entry.word));
+  shownWord = entry.word;
+  refreshPinButton();
   setFooterNote(sourceNote(entry.source));
   scrollEl.scrollTop = 0;
+}
+
+// The button only reflects the main process's saved list.
+let shownWord = null;
+
+async function refreshPinButton() {
+  const btn = document.getElementById("pin-btn");
+  if (!btn || !shownWord) return;
+  const saved = await window.api.isSaved(shownWord);
+  btn.classList.toggle("on", saved);
+  btn.textContent = saved ? "Saved" : "Save";
 }
 
 function renderNotFound(res) {
@@ -310,6 +413,7 @@ function openWord(word) {
 async function runLookup() {
   const word = input.value.trim();
   if (!word) return;
+  showLookupView();
   closeDropdown();
   updateInputUi();
 
@@ -413,6 +517,7 @@ function updateInputUi() {
 }
 
 function clearSearch() {
+  showLookupView();
   input.value = "";
   lookupSeq++; // drop any lookup still in flight
   closeDropdown();
@@ -484,6 +589,21 @@ creditLink.addEventListener("click", (event) => {
 
 // ---- Boot -------------------------------------------------------------------
 
+document.getElementById("nav-saved").addEventListener("click", showSavedView);
+
+// Saved list changed anywhere (bar, this window): refresh what depends on it.
+window.api.onSavedChanged(() => {
+  refreshSavedCount();
+  if (view === "saved") renderSaved();
+  else refreshPinButton();
+});
+
+// "Open in app" from the bar.
+window.api.onShowWord((word) => {
+  showLookupView();
+  openWord(word);
+});
+
 window.api.onHistoryChanged(refreshHistory);
 window.addEventListener("focus", () => {
   refreshHistory();
@@ -491,7 +611,10 @@ window.addEventListener("focus", () => {
 });
 
 (async function boot() {
-  await Promise.all([refreshHistory(), loadPackStatus()]);
+  await Promise.all([refreshHistory(), loadPackStatus(), refreshSavedCount()]);
   renderRecents();
   input.focus();
+  // Opened from the bar's "Open in app": go straight to that word.
+  const startWord = new URLSearchParams(window.location.search).get("word");
+  if (startWord) openWord(startWord);
 })();

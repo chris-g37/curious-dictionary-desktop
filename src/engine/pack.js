@@ -143,6 +143,26 @@ function createPack(getPackDir) {
     return entry;
   }
 
+  // First definition of a word, for list views (Saved). Follows a redirect if
+  // the word has no entry of its own. Null when the pack has nothing.
+  function gloss(word) {
+    const q = open();
+    if (!q) return null;
+    const lower = word.toLowerCase();
+    let rows = q.byWord.all(lower);
+    if (rows.length === 0) {
+      for (const { lemma } of q.redirects.all(word, lower)) {
+        rows = q.byWord.all(lemma.toLowerCase());
+        if (rows.length) break;
+      }
+    }
+    for (const row of rows) {
+      const first = q.senses.get(row.id);
+      if (first) return first.gloss;
+    }
+    return null;
+  }
+
   // Words starting with `prefix` (already lowercase): everyday words by the
   // pack's frequency rank first, then unranked words of similar length.
   // [{ word, pos }]. Used for autocomplete (Task 3) and near matches.
@@ -182,7 +202,7 @@ function createPack(getPackDir) {
     return [];
   }
 
-  return { isAvailable, info, lookup, suggest, complete, close };
+  return { isAvailable, info, lookup, gloss, suggest, complete, close };
 }
 
 module.exports = { createPack, SOURCE_LABEL };

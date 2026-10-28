@@ -458,3 +458,61 @@ body {
 .loading-text {
   font-size: 11.5px;
 }
+
+/* ---- Result card actions (design 2A/2B) ---- */
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+}
+
+.icon-action {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--icon);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.icon-action:hover {
+  background: var(--row-hover);
+}
+
+.icon-action.on {
+  color: var(--numeral);
+}
+
+.actions-sep {
+  width: 1px;
+  height: 18px;
+  margin: 0 8px;
+  background: var(--border);
+}
+
+.open-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.open-btn:hover {
+  border-color: var(--numeral);
+  color: var(--numeral);
+}

@@ -72,6 +72,77 @@ function counterHtml(notice) {
     : "";
 }
 
+const ICONS = {
+  copy: '<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
+  pin: '<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path class="pin-shape" d="M6 3h12v18l-6-4-6 4z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
+  history: '<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
+  open: '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1h5" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>',
+};
+
+function entryAsText(entry) {
+  const lines = [entry.word + (entry.pronunciation ? `  ${entry.pronunciation}` : "")];
+  for (const part of entry.parts) {
+    lines.push("", part.pos);
+    part.senses.forEach((sense, i) => lines.push(`${i + 1}. ${sense.text}`));
+  }
+  lines.push("", `Source: ${entry.sourceLabel}`);
+  return lines.join("\n");
+}
+
+function actionsHtml() {
+  return `
+    <div class="actions">
+      <button class="icon-action" id="act-copy" type="button" title="Copy">${ICONS.copy}</button>
+      <button class="icon-action" id="act-pin" type="button" title="Pin to Saved">${ICONS.pin}</button>
+      <button class="icon-action" id="act-history" type="button" title="History">${ICONS.history}</button>
+      <span class="actions-sep"></span>
+      <button class="open-btn" id="act-open" type="button">${ICONS.open}Open in app</button>
+    </div>`;
+}
+
+// Saved state lives in the main process; the button only reflects it.
+async function refreshPinState(word) {
+  const pin = document.getElementById("act-pin");
+  if (!pin || word !== shownWord) return;
+  const saved = await window.api.isSaved(word);
+  pin.classList.toggle("on", saved);
+  pin.title = saved ? "Remove from Saved" : "Pin to Saved";
+  pin.querySelector(".pin-shape").setAttribute("fill", saved ? "currentColor" : "none");
+}
+
+function wireActions(entry) {
+  shownWord = entry.word;
+  const copy = document.getElementById("act-copy");
+  copy.addEventListener("click", async () => {
+    await window.api.copyText(entryAsText(entry));
+    copy.title = "Copied";
+    copy.classList.add("on");
+    setTimeout(() => {
+      copy.title = "Copy";
+      copy.classList.remove("on");
+    }, 1200);
+  });
+  document.getElementById("act-pin").addEventListener("click", async () => {
+    await window.api.toggleSaved(entry.word);
+  });
+  document.getElementById("act-history").addEventListener("click", () => {
+    input.value = "";
+    resultEl.innerHTML = "";
+    shownWord = null;
+    showHistory();
+    input.focus();
+  });
+  document.getElementById("act-open").addEventListener("click", () => {
+    window.api.openInMainWindow(entry.word);
+  });
+  refreshPinState(entry.word);
+}
+
+let shownWord = null;
+window.api.onSavedChanged(() => {
+  if (shownWord) refreshPinState(shownWord);
+});
+
 function renderEntry(entry, notice) {
   const pronHtml = entry.pronunciation ? `<span class="pron">${esc(entry.pronunciation)}</span>` : "";
   const fromHtml = entry.redirectedFrom
@@ -112,9 +183,10 @@ function renderEntry(entry, notice) {
       </div>
       ${fromHtml}
       ${partsHtml}
-      ${footerHtml(entry.source, entry.sourceLabel, counterHtml(notice))}
+      ${footerHtml(entry.source, entry.sourceLabel, counterHtml(notice) + actionsHtml())}
     </div>
   `;
+  wireActions(entry);
 }
 
 function renderNotFound(response) {

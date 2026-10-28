@@ -40,6 +40,7 @@ const store = new Store({
     history: [],
     floatingIcon: { enabled: false, x: null, y: null, pinned: false },
     sourceMode: "offline-first",
+    saved: [],
   },
 });
 
@@ -351,11 +352,14 @@ function createSettingsWindow() {
 
 // The full-size window. It is created on demand and DESTROYED when closed
 // (never hidden), so it costs no RAM while the app idles in the tray.
-function createMainWindow() {
+// options.word opens the window on that word (used by "Open in app" on the bar).
+function createMainWindow(options = {}) {
+  const word = typeof options.word === "string" ? options.word : "";
   if (mainWindow) {
     if (mainWindow.isMinimized()) mainWindow.restore();
     mainWindow.show();
     mainWindow.focus();
+    if (word) mainWindow.webContents.send("show-word", word);
     return mainWindow;
   }
 
@@ -385,7 +389,7 @@ function createMainWindow() {
   mainWindow.webContents.on("will-navigate", (event) => event.preventDefault());
 
   mainWindow.loadFile(path.join(__dirname, "src", "main-window", "index.html"), {
-    query: { theme: getEffectiveTheme() },
+    query: word ? { theme: getEffectiveTheme(), word } : { theme: getEffectiveTheme() },
   });
   mainWindow.once("ready-to-show", () => mainWindow.show());
   mainWindow.on("closed", () => {
@@ -509,7 +513,7 @@ function createTray() {
 
   tray.setContextMenu(
     Menu.buildFromTemplate([
-      { label: "Open Curious", click: createMainWindow },
+      { label: "Open Curious", click: () => createMainWindow() },
       { label: "Search (Ctrl+Shift+Space)", click: toggleBar },
       { label: "Settings", click: createSettingsWindow },
       { type: "separator" },
@@ -581,6 +585,39 @@ app.whenReady().then(() => {
   ipcMain.handle("get-pack-status", () => pack.info());
 
   ipcMain.handle("get-history", () => store.get("history", []));
+
+  // Saved words. Words and save dates only; glosses are read live from the
+  // pack each time (nothing from Merriam-Webster is ever stored).
+  ipcMain.handle("get-saved", () =>
+    store.get("saved", []).map((s) => ({ ...s, gloss: pack.gloss(s.word) }))
+  );
+
+  ipcMain.handle("is-saved", (event, word) => isSaved(word));
+
+  ipcMain.handle("toggle-saved", (event, word) => {
+    const clean = cleanSavedWord(word);
+    if (!clean) return { saved: false };
+    const saved = store.get("saved", []);
+    const key = clean.toLowerCase();
+    const next = saved.some((s) => s.word.toLowerCase() === key)
+      ? saved.filter((s) => s.word.toLowerCase() !== key)
+      : [{ word: clean, savedAt: Date.now() }, ...saved];
+    store.set("saved", next);
+    broadcastSavedChanged();
+    return { saved: next.some((s) => s.word.toLowerCase() === key) };
+  });
+
+  ipcMain.handle("remove-saved", (event, word) => {
+    const key = cleanSavedWord(word).toLowerCase();
+    store.set("saved", store.get("saved", []).filter((s) => s.word.toLowerCase() !== key));
+    broadcastSavedChanged();
+    return true;
+  });
+
+  ipcMain.on("open-in-main-window", (event, word) => {
+    createMainWindow({ word });
+    hideBar();
+  });
 
   ipcMain.handle("copy-text", async (event, text) => {
     if (typeof text === "string" && text.length < 20000) {
@@ -674,6 +711,19 @@ app.on("will-quit", () => {
 });
 
 // History keeps words only (never definitions), whichever source answered.
+function cleanSavedWord(word) {
+  return typeof word === "string" ? word.replace(/·/g, "").trim().slice(0, 60) : "";
+}
+
+function isSaved(word) {
+  const key = cleanSavedWord(word).toLowerCase();
+  return Boolean(key) && store.get("saved", []).some((s) => s.word.toLowerCase() === key);
+}
+
+function broadcastSavedChanged() {
+  BrowserWindow.getAllWindows().forEach((win) => win.webContents.send("saved-changed"));
+}
+
 function saveHistoryEntry(found) {
   const entry = {
     word: found.word,

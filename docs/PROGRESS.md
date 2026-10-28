@@ -21,8 +21,8 @@ Publishing packs: docs/PUBLISHING-PACKS.md.
 | 2b | Resolver chain + source badge | done, passed Chris's review | limit states 2E/2F, local daily MW call counter (number only) |
 | 1c | Commonness ranking | done (option A), passed Chris's review | packs rebuilt as v2026.10.28 |
 | 3 | Main window (3A-3D, 3F autocomplete) | done, reviewed and passed by Chris | measure step recorded (see table) |
-| 4 | Interlinking + Saved (2A, 2B, 3E, 3G) | **next** | add Copy / Pin / History to the bar |
-| 5 | Settings / About (4A, 4B, 5A) + README | pending | version 2.0.0; panes in main window; retire old settings window |
+| 4 | Interlinking + Saved (2A, 2B, 3E, 3G) | done, awaiting Chris's review | add Copy / Pin / History to the bar |
+| 5 | Settings / About (4A, 4B, 5A) + README | **next** | version 2.0.0; panes in main window; retire old settings window |
 | 6 | Offline pack download | pending | replaces "ship the pack"; then measure step |
 | 7 | Shona experiment | pending | report only |
 
@@ -136,8 +136,17 @@ Recommendation: A. Words not in the list (the long tail, ~80% of pack words) wou
 |---|---|---|
 | After Task 3 | — | — |
 
-## Notes for the next window (Task 4)
-- Record the measure numbers first if Chris has them. Then Task 4 (interlink + Saved).
+### Task 4 — Interlinking + Saved
+- main.js is the single source of truth: store key `saved` = [{ word, savedAt }] (words and dates only). IPC: get-saved (adds a live gloss from the pack each time, never stored), is-saved, toggle-saved, remove-saved, open-in-main-window; events saved-changed (broadcast to every window) and show-word. Renderers only ask and reflect.
+- Bar result card footer: badge on the left; Copy, Pin (bookmark, fills when saved), History (clears the result and shows recents) and "Open in app" on the right. "Open in app" opens or focuses the main window on that word (new window gets ?word=, existing one gets show-word) and hides the bar. Not-found / limit / error cards have no buttons.
+- Main window: sidebar Saved item with live count; Saved view (3G): Recent / A-Z toggle, word + gloss + date + remove, click opens the word, empty state. Result view has Copy and Save/Saved.
+- pack.gloss(word): first definition (follows redirects); MW-only words show no gloss.
+- Checked with probes: bar pin toggles and the bar reflects it, History, Open in app -> main window shows the word and the bar hides, Saved view lists with gloss, remove updates count and bar pin. Bar visuals not screenshotted (transparent window), so the bar footer layout needs Chris's eye.
+- Copy copies word + pronunciation + numbered senses + source line (no examples).
+- Small gaps: Saved nav icon is not filled when active (design fills it); no keyboard shortcuts added.
+
+## Notes for the next window (Task 5)
+- Settings and About become main-window panes (replace src/settings/ window); README + About attribution must include Wiktionary/kaikki, FrequencyWords (OpenSubtitles, CC BY-SA 4.0), MW credit, the three OFL fonts. Version 2.0.0.
 
 ## Old notes (Task 1, done)
 - Input file: `data/kaikki-english.jsonl` in the repo root (Chris downloads the English extract from kaikki.org/dictionary/English and renames it). Check it exists before starting; if not, stop and ask.
