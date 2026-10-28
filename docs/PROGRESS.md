@@ -20,7 +20,8 @@ Publishing packs: docs/PUBLISHING-PACKS.md.
 | 2a | Electron upgrade + node:sqlite smoke test | done, awaiting Chris's hand-test | own commit; Chris hand-tests shortcuts/clipboard/tray after |
 | 2b | Resolver chain + source badge | done, awaiting Chris's review | limit states 2E/2F, local daily MW call counter (number only) |
 | 1c | Commonness ranking | done (option A), awaiting Chris's review | packs rebuilt as v2026.10.28 |
-| 3 | Main window (3A-3D, 3F autocomplete) | done, awaiting Chris's review + measure step | memory numbers still to record |
+| 3 | Main window (3A-3D, 3F autocomplete) | done, reviewed and passed by Chris | measure step recorded (see table) |
+| — | Task 4 | **next** | |
 | 4 | Interlinking + Saved (2A, 2B, 3E, 3G) | pending | add Copy / Pin / History to the bar |
 | 5 | Settings / About (4A, 4B, 5A) + README | pending | version 2.0.0; panes in main window; retire old settings window |
 | 6 | Offline pack download | pending | replaces "ship the pack"; then measure step |
@@ -38,7 +39,9 @@ Chris reads these from Task Manager (Details tab, sum of the app's processes); C
 
 | When | Idle in tray | Main window open + word looked up |
 |---|---|---|
-| After Task 3 | — | — |
+| After Task 3 | 224.1 MB (Electron, 3 processes) | 433.3 MB (Electron 3 procs 249.0 MB + Electron 6 procs 184.3 MB) |
+
+Notes: read from Task Manager > Processes (grouped), under `npm start` (dev build, not the packaged exe). The two Electron groups in (b) are unexplained: one app should be a single group, so the 6-process group may be a second instance or a leftover; re-measure with the Details tab if the number matters.
 | After Task 6 | — | — |
 
 ## Backlog (not scheduled)
@@ -128,7 +131,7 @@ Recommendation: A. Words not in the list (the long tail, ~80% of pack words) wou
 - main.js: openExternal now an HTTPS host allowlist (services.fetchmate.tech, en.wiktionary.org, kaikki.org, dictionaryapi.com), as CLAUDE.md says. New IPC: complete-word, get-pack-status, get-history, copy-text, history-changed event.
 - Checked with probes under Electron (light + dark, screenshots): fonts load, autocomplete, result, not-found, recents, hero; tray item opens the window and close destroys it.
 - Deviations to flag: native title bar instead of the design's custom one; no Saved item yet; "Open Curious" is only reachable from the tray menu.
-- MEASURE STEP (pending): Chris reads Task Manager > Details, sum of the app's processes, for (a) idle in tray and (b) main window open with a word looked up, and gives me the numbers to record here.
+- MEASURE STEP (recorded below): Chris reads Task Manager > Details, sum of the app's processes, for (a) idle in tray and (b) main window open with a word looked up, and gives me the numbers to record here.
 
 | When | Idle in tray | Main window open + word looked up |
 |---|---|---|
