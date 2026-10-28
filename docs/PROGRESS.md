@@ -20,7 +20,8 @@ Publishing packs: docs/PUBLISHING-PACKS.md.
 | 2a | Electron upgrade + node:sqlite smoke test | done, awaiting Chris's hand-test | own commit; Chris hand-tests shortcuts/clipboard/tray after |
 | 2b | Resolver chain + source badge | done, awaiting Chris's review | limit states 2E/2F, local daily MW call counter (number only) |
 | 1c | Commonness ranking | done (option A), awaiting Chris's review | packs rebuilt as v2026.10.28 |
-| 3 | Main window (3A-3D, 3F autocomplete) | **next** || 4 | Interlinking + Saved (2A, 2B, 3E, 3G) | pending | add Copy / Pin / History to the bar |
+| 3 | Main window (3A-3D, 3F autocomplete) | **next** |  |
+| 4 | Interlinking + Saved (2A, 2B, 3E, 3G) | pending | add Copy / Pin / History to the bar |
 | 5 | Settings / About (4A, 4B, 5A) + README | pending | version 2.0.0; panes in main window; retire old settings window |
 | 6 | Offline pack download | pending | replaces "ship the pack"; then measure step |
 | 7 | Shona experiment | pending | report only |
