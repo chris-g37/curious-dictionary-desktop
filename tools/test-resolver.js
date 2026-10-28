@@ -66,6 +66,15 @@ test("offline-first: no key, pack miss -> near matches", async () => {
   console.log("      near petrikor:", res.suggestions.map((s) => s.word).join(", "));
 });
 
+test("suggestions favour everyday words", async () => {
+  const s = setup({ key: "" });
+  const top = (w) => s.pack.complete(w).map((x) => x.word.toLowerCase());
+  assert(top("pe").includes("people"), "pe: " + top("pe"));
+  assert(top("con").includes("control"), "con: " + top("con"));
+  assert(top("lim").slice(0, 3).includes("limit"), "lim: " + top("lim"));
+  console.log("      pe:", top("pe").join(", "), "| con:", top("con").join(", "));
+});
+
 test("not found in both: pack suggestions", async () => {
   const s = setup({ fetchFn: respond(["alpha", "beta"]) });
   const res = await s.r.resolve("zzzzqx");

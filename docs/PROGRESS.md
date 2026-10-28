@@ -19,9 +19,8 @@ Publishing packs: docs/PUBLISHING-PACKS.md.
 | 1b | Release-prep script | done | `npm run pack:release`; not yet uploaded to GitHub |
 | 2a | Electron upgrade + node:sqlite smoke test | done, awaiting Chris's hand-test | own commit; Chris hand-tests shortcuts/clipboard/tray after |
 | 2b | Resolver chain + source badge | done, awaiting Chris's review | limit states 2E/2F, local daily MW call counter (number only) |
-| 1c | Commonness ranking | proposal written, **waiting for Chris to pick A or B** | nothing implemented | before Task 3 (autocomplete). Propose BOTH options with licensing, Chris picks; verify any list's license first |
-| 3 | Main window (3A-3D, 3F autocomplete) | pending | local fonts + OFL licenses; then measure step |
-| 4 | Interlinking + Saved (2A, 2B, 3E, 3G) | pending | add Copy / Pin / History to the bar |
+| 1c | Commonness ranking | done (option A), awaiting Chris's review | packs rebuilt as v2026.10.28 |
+| 3 | Main window (3A-3D, 3F autocomplete) | **next** || 4 | Interlinking + Saved (2A, 2B, 3E, 3G) | pending | add Copy / Pin / History to the bar |
 | 5 | Settings / About (4A, 4B, 5A) + README | pending | version 2.0.0; panes in main window; retire old settings window |
 | 6 | Offline pack download | pending | replaces "ship the pack"; then measure step |
 | 7 | Shona experiment | pending | report only |
@@ -110,8 +109,18 @@ Costs (core pack 140.4 MB): both tables together +12.8 MB; A has only 124,428 ro
 Attribution if A is chosen: About screen + README + NOTICE.txt: "Word frequency data: FrequencyWords by Hermit Dave (github.com/hermitdave/FrequencyWords), derived from OpenSubtitles, CC BY-SA 4.0." Raw list goes in data/ (gitignored); builder gets a --freq flag; unlisted words sort last, alphabetically.
 Recommendation: A. Words not in the list (the long tail, ~80% of pack words) would have no rank and sort last.
 
-## Notes for the next window
-- Chris picks A or B (or neither) for 1c; then implement it as a small builder change, rebuild packs, re-run pack:release, and make pack.js suggest() use the rank. Otherwise continue with Task 3.
+### Task 1c — implemented (option A)
+- tools/build-pack.js: new `--freq <file>` (default data/freq-en.txt). Builds table `freq(word_lower, rank)` for pack words found in the list (124,428 ranked) and meta `freq_source`. Missing list = warning, unranked pack.
+- List: hermitdave/FrequencyWords content/2018/en/en_full.txt saved as data/freq-en.txt (gitignored). tools/README.md documents the download.
+- Both packs rebuilt: core 142.5 MB (+2.1), full 174.3 MB (+2.1), version 2026.10.28. pack:release re-run (gz 66.3 MB / 77.5 MB); NOTICE.txt now credits FrequencyWords. NOT yet uploaded to GitHub. The dev userData pack was refreshed to the new core.
+- src/engine/pack.js: new complete(prefix, limit) (ranked words first, then unranked by length; needs 2+ letters; ~2 ms) used by suggest() for not-found near matches. Old packs without a freq table still work. Task 3 autocomplete should call complete().
+- Results: pe -> people, person, perfect, perhaps, peace; con -> control, contact, continue; ru -> run, running, Rules; lim -> limit, limited, limb. Unranked words follow ranked ones.
+- Tests: tools/test-resolver.js (18 cases) all pass.
+- TODO for Task 5: README and About must credit "Word frequency data: FrequencyWords by Hermit Dave, derived from OpenSubtitles, CC BY-SA 4.0" (the README currently has no attribution section at all; Task 5 writes it).
+- Caveat carried over: I verified the list's stated licence, not the upstream OpenSubtitles corpus terms.
+
+## Notes for the next window (Task 3)
+- Use pack.complete() for autocomplete; fonts bundled locally with OFL files; then the measure step (record memory numbers Chris provides).
 
 ## Old notes (Task 1, done)
 - Input file: `data/kaikki-english.jsonl` in the repo root (Chris downloads the English extract from kaikki.org/dictionary/English and renames it). Check it exists before starting; if not, stop and ask.

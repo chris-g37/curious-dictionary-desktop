@@ -2,7 +2,7 @@
 // line and writes a compact SQLite dictionary the app can read later.
 //
 //   node tools/build-pack.js [--profile core|full] [--lang en]
-//                            [--input <file>] [--limit <lines>]
+//                            [--input <file>] [--freq <file>] [--limit <lines>]
 //
 // Uses node:sqlite (built into Node 22.5+), so there is no npm dependency and
 // nothing native to rebuild. This runs on the system Node, not inside Electron.
@@ -83,12 +83,14 @@ function parseArgs(argv) {
     if (a === "--profile") opts.profile = next();
     else if (a === "--lang") opts.lang = next();
     else if (a === "--input") opts.input = next();
+    else if (a === "--freq") opts.freq = next();
     else if (a === "--limit") opts.limit = parseInt(next(), 10);
     else fail(`Unknown argument: ${a}`);
   }
   if (!PROFILES[opts.profile]) fail("--profile must be core or full");
   if (!/^[a-z]{2,3}(-[a-z0-9]+)?$/i.test(opts.lang)) fail("--lang looks wrong");
   if (!(opts.limit >= 0)) fail("--limit must be a number");
+  if (!opts.freq) opts.freq = path.join(ROOT, "data", `freq-${opts.lang}.txt`);
   if (!opts.input) {
     const name = opts.lang === "en" ? "english" : opts.lang;
     opts.input = path.join(ROOT, "data", `kaikki-${name}.jsonl`);
@@ -344,6 +346,28 @@ async function main() {
     CREATE INDEX idx_redirects_form ON redirects(form);
   `);
 
+  // Commonness rank (see tools/README.md): one row per ranked word, so
+  // autocomplete can order a prefix range by everyday-ness. Words not in the
+  // list simply have no row and sort after ranked ones.
+  let freqRows = 0;
+  if (fs.existsSync(opts.freq)) {
+    db.exec("CREATE TABLE freq (word_lower TEXT PRIMARY KEY, rank INTEGER NOT NULL) WITHOUT ROWID");
+    const insFreq = db.prepare("INSERT OR IGNORE INTO freq (word_lower, rank) VALUES (?, ?)");
+    const isWord = db.prepare("SELECT 1 FROM entries WHERE word_lower = ? LIMIT 1");
+    let rank = 0;
+    db.exec("BEGIN");
+    for (const line of fs.readFileSync(opts.freq, "utf8").split("\n")) {
+      const word = line.split(" ")[0].toLowerCase();
+      if (!word) continue;
+      rank++;
+      if (isWord.get(word)) insFreq.run(word, rank);
+    }
+    db.exec("COMMIT");
+    freqRows = db.prepare("SELECT COUNT(*) AS n FROM freq").get().n;
+  } else {
+    console.log(`\nWARNING: no frequency list at ${opts.freq}; autocomplete will be unranked.`);
+  }
+
   const count = (sql) => db.prepare(sql).get().n;
   const entryCount = count("SELECT COUNT(*) AS n FROM entries");
   const senseCount = count("SELECT COUNT(*) AS n FROM senses");
@@ -362,6 +386,7 @@ async function main() {
     license: "CC BY-SA 4.0 / GFDL",
     build_date: now.toISOString(),
     entry_count: String(entryCount),
+    freq_source: freqRows ? "FrequencyWords (Hermit Dave), from OpenSubtitles, CC BY-SA 4.0" : "",
   };
   const insMeta = db.prepare("INSERT INTO meta (key, value) VALUES (?, ?)");
   for (const [k, v] of Object.entries(meta)) insMeta.run(k, v);
@@ -382,6 +407,7 @@ async function main() {
   console.log(`Entries:     ${entryCount.toLocaleString()}  (${distinctWords.toLocaleString()} distinct words)`);
   console.log(`Senses:      ${senseCount.toLocaleString()}`);
   console.log(`Redirects:   ${redirectCount.toLocaleString()}`);
+  console.log(`Ranked:      ${freqRows.toLocaleString()} words`);
   console.log(
     `Lines read:  ${stats.lines.toLocaleString()}  (other language ${stats.wrongLang}, skipped POS ${stats.skippedPos}, no gloss ${stats.noGloss}, bad JSON ${stats.badJson})`
   );

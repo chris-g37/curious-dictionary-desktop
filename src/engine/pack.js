@@ -31,10 +31,19 @@ function createPack(getPackDir) {
       if (file) {
         try {
           db = new DatabaseSync(file, { readOnly: true });
+          const hasTable = (name) =>
+            db.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?").get(name) !== undefined;
           stmts = {
             byWord: db.prepare("SELECT id, word, pos, ipa, etymology FROM entries WHERE word_lower = ? ORDER BY id"),
             senses: db.prepare("SELECT gloss, example FROM senses WHERE entry_id = ? ORDER BY idx"),
             redirects: db.prepare("SELECT DISTINCT lemma FROM redirects WHERE form = ? OR form = ?"),
+            // Packs built before the ranking existed have no freq table.
+            ranked: hasTable("freq")
+              ? db.prepare(
+                  "SELECT word_lower FROM freq WHERE word_lower >= ? AND word_lower < ? ORDER BY rank LIMIT ?"
+                )
+              : null,
+            display: db.prepare("SELECT word, pos FROM entries WHERE word_lower = ? ORDER BY id LIMIT 1"),
             range: db.prepare(
               `SELECT MIN(word) AS word, MIN(pos) AS pos FROM entries
                WHERE word_lower >= ? AND word_lower < ?
@@ -120,21 +129,46 @@ function createPack(getPackDir) {
     return entry;
   }
 
-  // Near matches for a word that was not found: the longest prefix that has
-  // any entries wins, preferring words of similar length. [{ word, pos }]
-  function suggest(word) {
+  // Words starting with `prefix` (already lowercase): everyday words by the
+  // pack's frequency rank first, then unranked words of similar length.
+  // [{ word, pos }]. Used for autocomplete (Task 3) and near matches.
+  function complete(prefix, limit = MAX_SUGGESTIONS) {
     const q = open();
-    if (!q) return [];
+    if (!q || prefix.length < 2) return [];
+    const hi = prefix + "￿";
+    const out = [];
+    const seen = new Set();
+    if (q.ranked) {
+      for (const { word_lower } of q.ranked.all(prefix, hi, limit)) {
+        const row = q.display.get(word_lower);
+        if (row) {
+          seen.add(word_lower);
+          out.push({ word: row.word, pos: row.pos });
+        }
+      }
+    }
+    if (out.length < limit) {
+      // Over-fetch so words already taken from the ranked list can be skipped.
+      for (const row of q.range.all(prefix, hi, prefix.length, limit * 2)) {
+        if (out.length >= limit) break;
+        if (!seen.has(row.word.toLowerCase())) out.push({ word: row.word, pos: row.pos });
+      }
+    }
+    return out;
+  }
+
+  // Near matches for a word that was not found: the longest prefix (up to 6
+  // letters, shorter than the word) that has any entries wins.
+  function suggest(word) {
     const lower = word.toLowerCase();
     for (let len = Math.min(lower.length - 1, 6); len >= 2; len--) {
-      const prefix = lower.slice(0, len);
-      const rows = q.range.all(prefix, prefix + "￿", lower.length, MAX_SUGGESTIONS);
-      if (rows.length > 0) return rows.map((r) => ({ word: r.word, pos: r.pos }));
+      const out = complete(lower.slice(0, len));
+      if (out.length > 0) return out;
     }
     return [];
   }
 
-  return { isAvailable, lookup, suggest, close };
+  return { isAvailable, lookup, suggest, complete, close };
 }
 
 module.exports = { createPack, SOURCE_LABEL };

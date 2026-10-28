@@ -24,6 +24,15 @@ Turns a kaikki.org Wiktionary extract into a compact SQLite dictionary pack.
 For another language, download that language's extract and either name it
 `data/kaikki-<lang>.jsonl` or pass `--input`.
 
+### 1b. Download the frequency list (optional but recommended)
+
+Autocomplete ranks everyday words first using a word-frequency list. Download
+https://raw.githubusercontent.com/hermitdave/FrequencyWords/master/content/2018/en/en_full.txt
+and save it as `data/freq-en.txt` (gitignored). Format: one `word count` per line.
+Without it the build prints a warning and the pack is unranked. The list is
+CC BY-SA 4.0 (FrequencyWords by Hermit Dave, from OpenSubtitles); attribution
+is in NOTICE.txt, the README and the About screen.
+
 ### 2. Run it
 
 Needs Node 22.5 or newer (it uses the built-in `node:sqlite`; no npm install).
@@ -38,6 +47,7 @@ Or `npm run pack:build -- --profile full`.
 | Flag | Default | Meaning |
 |---|---|---|
 | `--profile core\|full` | `core` | core: up to 6 senses, 1 example each, no etymology. full: up to 20 senses, 2 examples each, etymology. |
+| `--freq <file>` | `data/freq-<lang>.txt` | Frequency list for the `freq` table. |
 | `--lang <code>` | `en` | Language code to keep (matches kaikki's `lang_code`). |
 | `--input <file>` | `data/kaikki-english.jsonl` | Input JSONL. |
 | `--limit <n>` | off | Read only the first n lines. Output goes to `dist-pack/sample/` so it can't be mistaken for a real pack. |
@@ -51,9 +61,10 @@ Output: `dist-pack/curious-<lang>-<profile>.db` (gitignored).
 - `meta(key, value)`: pack_id, language, profile, version, source, license, build_date, entry_count, schema_version.
 - `entries(id, word, word_lower, pos, ipa, etymology)`: one row per word + part of speech (+ etymology).
 - `senses(entry_id, idx, gloss, example)`: ordered definitions. With 2 examples (full), `example` holds them separated by a newline.
+- `freq(word_lower, rank)`: commonness rank (1 = most common) for the ~124k pack words found in the frequency list; unlisted words have no row and sort last. Absent in packs built without a list.
 - `redirects(form, lemma)`: "form of" pointers, e.g. `ran` -> `run`, `colour` -> `color`. Kept even when the form has its own entry (`ran` is also a noun), so a lookup should show the redirect first, then the word's own entries. Rare/dialect forms and redirects to a much smaller entry are dropped (this is why `run` does not point at Scots `rin`).
 
-Autocomplete: `WHERE word_lower >= 'lim' AND word_lower < 'lin'` on the indexed `word_lower` column. No FTS5.
+Autocomplete: `WHERE word_lower >= 'lim' AND word_lower < 'lin'` on `freq` ordered by `rank`, topped up from the indexed `entries.word_lower` range for unranked words. No FTS5.
 
 Never stored: translations, sound-file metadata, inflection tables.
 
