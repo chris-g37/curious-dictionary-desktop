@@ -21,9 +21,9 @@ Publishing packs: docs/PUBLISHING-PACKS.md.
 | 2b | Resolver chain + source badge | done, passed Chris's review | limit states 2E/2F, local daily MW call counter (number only) |
 | 1c | Commonness ranking | done (option A), passed Chris's review | packs rebuilt as v2026.10.28 |
 | 3 | Main window (3A-3D, 3F autocomplete) | done, reviewed and passed by Chris | measure step recorded (see table) |
-| 4 | Interlinking + Saved (2A, 2B, 3E, 3G) | done, awaiting Chris's review | add Copy / Pin / History to the bar |
-| 5 | Settings / About (4A, 4B, 5A) + README | **next** | version 2.0.0; panes in main window; retire old settings window |
-| 6 | Offline pack download | pending | replaces "ship the pack"; then measure step |
+| 4 | Interlinking + Saved (2A, 2B, 3E, 3G) | done, passed Chris's review | add Copy / Pin / History to the bar |
+| 5 | Settings / About (4A, 4B, 5A) + README | done, awaiting Chris's review | version 2.0.0; panes in main window; retire old settings window |
+| 6 | Offline pack download | **next** | replaces "ship the pack"; then measure step |
 | 7 | Shona experiment | pending | report only |
 
 ## Decisions
@@ -145,8 +145,18 @@ Recommendation: A. Words not in the list (the long tail, ~80% of pack words) wou
 - Copy copies word + pronunciation + numbered senses + source line (no examples).
 - Small gaps: Saved nav icon is not filled when active (design fills it); no keyboard shortcuts added.
 
-## Notes for the next window (Task 5)
-- Settings and About become main-window panes (replace src/settings/ window); README + About attribution must include Wiktionary/kaikki, FrequencyWords (OpenSubtitles, CC BY-SA 4.0), MW credit, the three OFL fonts. Version 2.0.0.
+### Task 5 — Settings, About, licensing, README
+- Old settings window retired (src/settings/ deleted, createSettingsWindow removed). Tray > Settings, the floating-icon menu and the bar's "Open settings" button now open the main window on the Settings pane (createMainWindow({ pane }) / show-pane event / ?pane= on first load).
+- Main window sidebar gained Settings and About. Settings pane (4A): Dictionary source (Offline first / Online first), pack status row (entries, version, build date; or a not-installed message with the packs folder path, since in-app download is Task 6), Merriam-Webster key (optional wording, show/hide, saves on blur/Enter, Get a free key link), read-only shortcuts, Floating icon switch, Light/Dark/System, Clear history (existing confirm dialog). Skipped as agreed: shortcut recording, double-click lookup, launch at startup (backlog).
+- About pane (5A): app version (from app.getVersion), credit link to services.fetchmate.tech, attributions: Wiktionary + kaikki.org (Tatu Ylonen, Wiktextract) CC BY-SA 4.0 / GFDL with the modified-data note, FrequencyWords (Hermit Dave, OpenSubtitles, CC BY-SA 4.0), Merriam-Webster API credit, bundled OFL fonts.
+- Version bumped to 2.0.0 (package.json + package-lock.json).
+- README rewritten: sources and modes, pack setup (both userData folders), usage, structure, memory/tray lifecycle, data stored, link allowlist, licences/attribution, credit; the clipboard-trick and floating-icon deep dives kept under "Internals".
+- Checked with probes: tray Settings opens the main window on the Settings pane, pack row correct, source toggle persists (and was reset), About shows the version and attributions, window reopens after close. Real-app clicking for Chris to do. Note the About version only reads 2.0.0 after this commit's package.json is used (probe ran before the bump).
+- Gaps: creativecommons.org/GitHub URLs are plain text on About (not on the openExternal allowlist). The packaged installer was not built or run.
+
+## Notes for the next window (Task 6)
+- Offline pack download: manifest at the GitHub Release `packs` (see docs/PUBLISHING-PACKS.md); the new packs (v2026.10.28) are built and release-prepped locally but NOT yet uploaded. Ask Chris to upload before testing the download.
+- Settings pane has a not-installed row that mentions copying a pack by hand; replace it with a Download button + progress.
 
 ## Old notes (Task 1, done)
 - Input file: `data/kaikki-english.jsonl` in the repo root (Chris downloads the English extract from kaikki.org/dictionary/English and renames it). Check it exists before starting; if not, stop and ask.

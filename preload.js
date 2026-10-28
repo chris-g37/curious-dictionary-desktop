@@ -25,6 +25,9 @@ contextBridge.exposeInMainWorld("api", {
   onSavedChanged: (callback) => ipcRenderer.on("saved-changed", () => callback()),
   onShowWord: (callback) => ipcRenderer.on("show-word", (event, word) => callback(word)),
 
+  getAppInfo: () => ipcRenderer.invoke("get-app-info"),
+  onShowPane: (callback) => ipcRenderer.on("show-pane", (event, pane) => callback(pane)),
+
   getRecentHistory: () => ipcRenderer.invoke("get-recent-history"),
   requestClearHistory: () => ipcRenderer.invoke("request-clear-history"),
 

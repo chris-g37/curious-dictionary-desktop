@@ -38,14 +38,15 @@ let packReady = false;
 
 // ---- Layout ---------------------------------------------------------------
 
-let view = "lookup"; // "lookup" | "saved"
+let view = "lookup"; // "lookup" | "saved" | "settings" | "about"
 
 function applyLayout() {
   // First launch (nothing ever looked up) gets the centered welcome.
   scrollEl.classList.toggle("hero", view === "lookup" && history.length === 0 && !hasContent);
-  scrollEl.classList.toggle("view-saved", view === "saved");
-  document.getElementById("nav-lookup").classList.toggle("active", view === "lookup");
-  document.getElementById("nav-saved").classList.toggle("active", view === "saved");
+  scrollEl.classList.toggle("view-pane", view !== "lookup");
+  for (const name of ["lookup", "saved", "settings", "about"]) {
+    document.getElementById("nav-" + name).classList.toggle("active", view === name);
+  }
 }
 
 function showLookupView() {
@@ -212,13 +213,229 @@ async function renderSaved() {
   setFooterNote("");
 }
 
-function showSavedView() {
-  view = "saved";
+function enterPane(name) {
+  view = name;
   hasContent = true;
   lookupSeq++; // drop any lookup still in flight
   closeDropdown();
   applyLayout();
+  setFooterNote("");
+}
+
+function showSavedView() {
+  enterPane("saved");
   renderSaved();
+}
+
+// ---- Settings (4A) ----------------------------------------------------------
+// Every control reads its state from the main process and writes straight
+// back; nothing is cached here.
+
+const EYE =
+  '<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>';
+
+async function renderSettings() {
+  const [settings, pack, fi, info] = await Promise.all([
+    window.api.getSettings(),
+    window.api.getPackStatus(),
+    window.api.getFloatingIconSettings(),
+    window.api.getAppInfo(),
+  ]);
+  if (view !== "settings") return;
+
+  const packRow = pack
+    ? `<div class="row">
+         <div><div class="row-title"><span class="status-dot on"></span>${pack.language === "en" ? "English" : esc(pack.language)} pack (${esc(pack.profile)})</div>
+         <div class="row-mono">${pack.entries.toLocaleString()} entries · version ${esc(pack.version)} · built ${esc(pack.buildDate)}</div></div>
+         <span class="row-state">Installed</span>
+       </div>`
+    : `<div class="row">
+         <div><div class="row-title"><span class="status-dot"></span>No offline pack installed</div>
+         <div class="row-sub">Downloading a pack from inside the app is coming in a later update. For now, copy a pack file (curious-en-core.db or curious-en-full.db) into:</div>
+         <div class="row-mono">${esc(info.packDir)}</div></div>
+         <span class="row-state off">Not installed</span>
+       </div>`;
+
+  contentEl.innerHTML = `
+    <div class="pane">
+      <h1>Settings</h1>
+
+      <div class="section-label">Dictionary</div>
+      <div class="card">
+        <div class="row">
+          <div><div class="row-title">Dictionary source</div>
+          <div class="row-sub">Which source answers first. Offline first uses Merriam-Webster only when the pack has no entry.</div></div>
+          <div class="segmented" id="source-seg">
+            <button type="button" data-mode="offline-first">Offline first</button>
+            <button type="button" data-mode="online-first">Online first</button>
+          </div>
+        </div>
+        ${packRow}
+        <div class="key-block">
+          <div class="key-head">
+            <div><div class="row-title">Merriam-Webster API key</div>
+            <div class="row-sub">Optional — enables Merriam-Webster as a second source</div></div>
+            <button class="link" id="get-key" type="button">Get a free key →</button>
+          </div>
+          <div class="key-field">
+            <input id="api-key" type="password" placeholder="Paste your API key" autocomplete="off" spellcheck="false" />
+            <button class="icon-btn" id="toggle-key" type="button" aria-label="Show key">${EYE}</button>
+          </div>
+          <div class="key-status" id="key-status"></div>
+        </div>
+      </div>
+
+      <div class="section-label">Summon</div>
+      <div class="card">
+        <div class="row">
+          <div><div class="row-title">Show search bar</div><div class="row-sub">Opens the summon bar from anywhere</div></div>
+          <div class="keys"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>Space</kbd></div>
+        </div>
+        <div class="row">
+          <div><div class="row-title">Look up selected word</div><div class="row-sub">Select a word in any app, then press this</div></div>
+          <div class="keys"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>D</kbd></div>
+        </div>
+        <div class="row">
+          <div><div class="row-title">Floating icon</div><div class="row-sub">A draggable icon on screen</div></div>
+          <button id="fi-switch" class="switch" role="switch" aria-checked="${fi.enabled}" type="button"></button>
+        </div>
+      </div>
+
+      <div class="section-label">Appearance</div>
+      <div class="segmented" id="theme-seg">
+        <button type="button" data-theme-choice="light">Light</button>
+        <button type="button" data-theme-choice="dark">Dark</button>
+        <button type="button" data-theme-choice="system">System</button>
+      </div>
+
+      <div class="section-label">History</div>
+      <div class="card">
+        <div class="row">
+          <div><div class="row-title">Recent lookups</div><div class="row-sub" id="clear-status">Words you have looked up. Saved words are kept.</div></div>
+          <button class="btn" id="clear-history" type="button">Clear history</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const keyInput = document.getElementById("api-key");
+  keyInput.value = settings.apiKey || "";
+  let flashTimer = null;
+  const flash = (el, text) => {
+    el.textContent = text;
+    clearTimeout(flashTimer);
+    flashTimer = setTimeout(() => (el.textContent = ""), 2000);
+  };
+  const saveKey = async () => {
+    await window.api.saveApiKey(keyInput.value);
+    flash(document.getElementById("key-status"), "Saved");
+  };
+  keyInput.addEventListener("blur", saveKey);
+  keyInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") keyInput.blur();
+  });
+  document.getElementById("toggle-key").addEventListener("click", () => {
+    keyInput.type = keyInput.type === "password" ? "text" : "password";
+  });
+  document.getElementById("get-key").addEventListener("click", () => window.api.openExternal("https://dictionaryapi.com"));
+
+  // A segmented control: highlights the current value, reports clicks.
+  const pick = (segId, attr, current, onPick) => {
+    const buttons = document.getElementById(segId).querySelectorAll("button");
+    buttons.forEach((b) => b.classList.toggle("on", b.dataset[attr] === current));
+    buttons.forEach((b) =>
+      b.addEventListener("click", () => {
+        buttons.forEach((x) => x.classList.toggle("on", x === b));
+        onPick(b.dataset[attr]);
+      })
+    );
+  };
+  pick("source-seg", "mode", settings.sourceMode === "online-first" ? "online-first" : "offline-first", (mode) =>
+    window.api.saveSourceMode(mode)
+  );
+  pick("theme-seg", "themeChoice", settings.theme || "system", (theme) => window.api.saveTheme(theme));
+
+  const sw = document.getElementById("fi-switch");
+  sw.addEventListener("click", async () => {
+    const next = sw.getAttribute("aria-checked") !== "true";
+    sw.setAttribute("aria-checked", String(next));
+    await window.api.setFloatingIconEnabled(next);
+  });
+
+  document.getElementById("clear-history").addEventListener("click", async () => {
+    const { cleared } = await window.api.requestClearHistory();
+    if (cleared) flash(document.getElementById("clear-status"), "History cleared");
+  });
+}
+
+function showSettingsView() {
+  enterPane("settings");
+  renderSettings();
+}
+
+// ---- About / licences (5A) --------------------------------------------------
+
+function extLink(url, label, cls = "link") {
+  return `<button class="${cls}" type="button" data-url="${esc(url)}">${esc(label)}</button>`;
+}
+
+async function renderAbout() {
+  const info = await window.api.getAppInfo();
+  if (view !== "about") return;
+  contentEl.innerHTML = `
+    <div class="pane">
+      <h1>About</h1>
+      <div class="about-hero">
+        <div class="about-mark">
+          <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M4 3h13a3 3 0 013 3v15l-4-2-4 2-4-2-4 2V3z" fill="currentColor" /></svg>
+        </div>
+        <div>
+          <div class="about-name">Curious <i>Dictionary</i></div>
+          <div class="about-version">Version ${esc(info.version)}</div>
+        </div>
+      </div>
+      ${extLink("https://services.fetchmate.tech", "Built by Fetchmate Chief Technologies ↗", "credit-link")}
+
+      <div class="section-label">Dictionary data</div>
+      <div class="card">
+        <div class="attrib"><b>Wiktionary</b>
+          The offline pack is built from Wiktionary, the free dictionary written by Wiktionary
+          contributors, as extracted by kaikki.org (Tatu Ylonen, Wiktextract). Licensed CC BY-SA 4.0
+          and GFDL. The pack was modified: trimmed (fewer senses and examples; translations, sound
+          files and inflection tables removed) and converted to SQLite.
+          <br />${extLink("https://en.wiktionary.org", "en.wiktionary.org")} · ${extLink("https://kaikki.org", "kaikki.org")}
+        </div>
+        <div class="attrib"><b>Word frequency</b>
+          Ordering of suggestions uses FrequencyWords by Hermit Dave
+          (github.com/hermitdave/FrequencyWords), derived from OpenSubtitles. CC BY-SA 4.0.
+        </div>
+        <div class="attrib"><b>Merriam-Webster</b>
+          Optional second source: definitions from the Merriam-Webster Collegiate Dictionary API,
+          used with your own key. Nothing from Merriam-Webster is stored; only the words you look up
+          are kept in your history. ${extLink("https://dictionaryapi.com", "dictionaryapi.com")}
+        </div>
+      </div>
+
+      <div class="section-label">Fonts</div>
+      <div class="card">
+        <div class="attrib">Fraunces, Inter and JetBrains Mono are bundled with the app under the
+          SIL Open Font License 1.1. The licence texts ship with the app in its src/fonts folder.</div>
+      </div>
+    </div>
+  `;
+  contentEl.querySelectorAll("[data-url]").forEach((b) =>
+    b.addEventListener("click", () => window.api.openExternal(b.dataset.url))
+  );
+}
+
+function showAboutView() {
+  enterPane("about");
+  renderAbout();
+}
+
+function showPane(name) {
+  if (name === "settings") showSettingsView();
+  else if (name === "about") showAboutView();
 }
 
 // ---- Result rendering -----------------------------------------------------
@@ -590,6 +807,9 @@ creditLink.addEventListener("click", (event) => {
 // ---- Boot -------------------------------------------------------------------
 
 document.getElementById("nav-saved").addEventListener("click", showSavedView);
+document.getElementById("nav-settings").addEventListener("click", showSettingsView);
+document.getElementById("nav-about").addEventListener("click", showAboutView);
+window.api.onShowPane(showPane);
 
 // Saved list changed anywhere (bar, this window): refresh what depends on it.
 window.api.onSavedChanged(() => {
@@ -615,6 +835,7 @@ window.addEventListener("focus", () => {
   renderRecents();
   input.focus();
   // Opened from the bar's "Open in app": go straight to that word.
-  const startWord = new URLSearchParams(window.location.search).get("word");
-  if (startWord) openWord(startWord);
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("word")) openWord(params.get("word"));
+  else if (params.get("pane")) showPane(params.get("pane"));
 })();

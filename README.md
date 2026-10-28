@@ -2,30 +2,62 @@
 
 A minimalist Windows dictionary app. Press a shortcut, a small search pill
 appears at the top of your screen, type a word and hit Enter, get a
-definition card. Press Escape or click away and it disappears — nothing
-else on your desktop is touched. It lives in the system tray, remembers
-your recent searches, and follows your OS theme.
+definition card. Press Escape or click away and it disappears. For longer
+reading there is a full main window with autocomplete, recent lookups and a
+Saved list. It lives in the system tray, works **offline** from a built-in
+dictionary pack, and can optionally use Merriam-Webster as a second source.
+
+Built by [Fetchmate Chief Technologies](https://services.fetchmate.tech).
+
+## Dictionary sources
+
+| Source | What it is | Needs |
+|---|---|---|
+| **Offline pack** | A compact SQLite dictionary built from Wiktionary (via kaikki.org). Looked up on your own machine, page by page, never loaded whole into memory. | A pack file in the app's data folder |
+| **Merriam-Webster** (optional) | The Merriam-Webster Collegiate Dictionary API. | Your own free API key |
+
+Each lookup shows a badge saying which source answered: green
+"Offline · Wiktionary" or terracotta "Merriam-Webster".
+
+Settings → **Dictionary source** chooses the order:
+
+- **Offline first** (default): the pack answers; Merriam-Webster is asked only
+  when the pack has no entry and you have saved an API key.
+- **Online first**: Merriam-Webster answers; the pack steps in when you are
+  offline, the daily limit is reached, or the request fails.
+
+The app works fully without an API key. The Merriam-Webster free tier allows
+1,000 lookups a day; the app keeps a local count (a number and a date, nothing
+else) and shows a notice when the limit is reached.
 
 ## Setup
 
-1. Install dependencies:
+1. Install dependencies (Node 22.5 or newer is needed for the build tools):
 
    ```
    npm install
    ```
 
-2. Add your Merriam-Webster API key. Either:
+2. Get an offline pack. Packs are not stored in this repo or bundled in the
+   installer. Build one yourself (see [tools/README.md](tools/README.md)) or
+   use a published one (see [docs/PUBLISHING-PACKS.md](docs/PUBLISHING-PACKS.md)),
+   then copy the `.db` file into the app's `packs` folder:
 
-   - Open the app, click the tray icon, choose **Settings**, and paste your
-     [Merriam-Webster Collegiate Dictionary API](https://dictionaryapi.com/)
-     key there (there's a "Get a free key" link in the same window) — or
-   - `copy config.example.js config.js` and paste the key into `config.js`
-     before first run. This is only a first-run fallback: on startup, if
-     there's no key saved yet, the app copies the one from `config.js` into
-     its own settings store and uses that from then on. `config.js` is
-     gitignored either way, so a key pasted there never gets committed.
+   - running with `npm start`: `%APPDATA%\curious-dictionary-desktop\packs\`
+   - installed app: `%APPDATA%\Curious Dictionary\packs\`
 
-3. Run it:
+   The app uses `curious-en-full.db` if present, otherwise `curious-en-core.db`.
+   Settings shows whether a pack is installed. In-app download is planned.
+
+3. Optional: add a Merriam-Webster API key. Open **Settings** (tray menu, or
+   the Settings item in the main window) and paste the key into the
+   Merriam-Webster field ("Get a free key" links to
+   [dictionaryapi.com](https://dictionaryapi.com/)). As an alternative,
+   `copy config.example.js config.js` and paste the key there before first
+   run; the app copies it into its own settings once. `config.js` is
+   gitignored.
+
+4. Run it:
 
    ```
    npm start
@@ -33,82 +65,95 @@ your recent searches, and follows your OS theme.
 
 ## Using it
 
-- **Ctrl+Shift+Space**, or left-clicking the tray icon — show the bar
-  (focused and ready to type) or hide it if it's already open
-- Type a word, press **Enter** to look it up
-- **Ctrl+Shift+D** — highlight a word in any Windows app (browser, PDF
-  reader, Word, Notepad, ...) and press this to pop the bar up with that
-  word already looked up
-- **Escape**, or clicking anywhere outside the bar, hides it
-- Hiding doesn't clear anything — summon it again and your last result is
-  still there
-- With an empty search box, the bar shows your 8 most recent lookups —
-  click one to look it up again
-- Right-click the tray icon for Search / Settings / Quit. Closing the
-  Settings window, or dismissing the bar, never quits the app — only
-  **Quit** from the tray does
-- Settings (tray → Settings) holds your API key, a Light/Dark/System theme
-  picker, a "Clear history" button, a "Show floating icon" toggle, and a
-  read-only list of both keyboard shortcuts
-- The floating icon (off by default — turn it on in Settings) is a small
-  draggable button that floats above other windows. Left-click it to
-  summon the bar, drag it anywhere and let go to snap it to the nearest
-  screen edge, right-click for Pin/Unpin, Hide, and Settings
+- **Ctrl+Shift+Space**, or left-clicking the tray icon: show or hide the bar
+- Type a word, press **Enter**. With a pack installed, suggestions with
+  everyday words first appear in the main window as you type.
+- **Ctrl+Shift+D**: select a word in any Windows app and press this to pop the
+  bar up with that word already looked up
+- **Escape**, or clicking outside the bar, hides it
+- With an empty search box the bar shows your 8 most recent lookups
+- On a result card: **Copy**, **Pin** (adds the word to Saved), **History**
+  (back to recent lookups) and **Open in app** (opens the main window on that
+  word)
+- Tray menu: **Open Curious** (main window), Search, Settings, Quit. Closing
+  the main window destroys it to save memory; only **Quit** ends the app.
+- Main window: Look up (autocomplete with ↑↓ / Tab / Enter / Esc, `/` to focus
+  search), Saved (Recent or A–Z, remove), Settings, About
+- The floating icon (off by default) is a small draggable button that floats
+  above other windows. Left-click it to summon the bar, drag to snap it to a
+  screen edge, right-click for Pin/Unpin, Hide and Settings
 
 ## Testing the packaged build
 
 `npm run build` produces two Windows executables in `dist/`: a portable
 `.exe` and an NSIS installer `.exe`. The portable one is a single
-self-contained file — no install, no admin prompt, just double-click it
-and the app runs, the same as `npm start` but without needing Node or this
-source tree around. That's the one for daily use. The installer is for
-when you want a proper install with a Start Menu shortcut and an
-uninstaller, which matters more for handing the app to someone else than
-for your own machine.
+self-contained file: no install, no admin prompt. The installer is for a
+proper install with a Start Menu shortcut and an uninstaller. Neither contains
+the offline pack, the raw data, `tools/` or `docs/` (see `electron-builder.yml`).
 
 ## How it's built
 
-- `main.js` — the main process. This is the only part of the app with
-  access to Node/OS APIs: it creates the windows, owns the tray icon,
-  registers the global keyboard shortcut, reads/writes persisted settings,
-  and makes the Merriam-Webster API call.
-- `preload.js` — a small bridge script that exposes a fixed set of
-  functions to the pages (`window.api`: `lookupWord`, `hideBar`,
-  `getRecentHistory`, `saveTheme`, etc.). The renderers can't reach Node or
-  the network directly — they can only call these specific functions.
-- `src/bar/` — the summon bar renderer: the search pill, result card, and
-  recent-history list.
-- `src/settings/` — the settings window renderer: API key field, theme
-  picker, clear-history button, floating-icon toggle.
-- `src/floating-icon/` — the floating icon renderer: a 36px circular
-  button, dragged and clicked entirely with hand-rolled mouse-event
-  handling (see below).
+- `main.js`: the main process. The only part with Node/OS access: windows,
+  tray, global shortcuts, persisted settings, and wiring the lookup engine to
+  the renderers. It owns all shared state (history, saved words, settings).
+- `preload.js`: a small bridge exposing a fixed set of functions to the pages
+  (`window.api`). Renderers cannot reach Node or the network directly.
+- `src/engine/`: the lookup engine. `pack.js` reads the offline pack with
+  Node's built-in `node:sqlite`; `mw.js` calls Merriam-Webster; `resolver.js`
+  decides the order, normalizes results to one shape and keeps the daily call
+  counter.
+- `src/bar/`: the summon bar renderer.
+- `src/main-window/`: the main window renderer (look up, Saved, Settings,
+  About).
+- `src/floating-icon/`: the floating icon renderer.
+- `src/fonts/`: Fraunces, Inter and JetBrains Mono (woff2) with their OFL
+  licence files. Bundled locally; nothing loads from a CDN.
+- `tools/`: build-time scripts (pack builder, release prep, dev lookup and
+  tests). Not shipped.
+- `docs/`: handoff spec, progress log, publishing steps, design file.
 - All renderers are sandboxed webpages (`contextIsolation: true`,
-  `nodeIntegration: false`) with no direct filesystem or network access.
-- `assets/icons/` — the tray icon.
+  `nodeIntegration: false`).
 
-### Tray lifecycle
+### Tray lifecycle and memory
 
-The app has no visible main window — `main.js` creates the tray icon in
-`app.whenReady()` and the process just keeps running in the background from
-then on, driven entirely by tray clicks, the global shortcut, and IPC calls
-from the two renderer windows. Closing the summon bar only hides it
-(`BrowserWindow.hide()`, not `.close()`), and closing the Settings window
-lets it fully close since it's cheap to recreate — neither ends the app,
-because `app.on('window-all-closed', ...)` is wired to ignore that event
-unless the tray's **Quit** item was actually used (tracked with an
-`isQuitting` flag). Quit is the only path that calls `app.quit()`.
+The app has no window of its own at startup: `main.js` creates the tray icon
+in `app.whenReady()` and keeps running in the background. The summon bar stays
+hidden-but-alive so it appears instantly. The main window is created on demand
+and destroyed when closed, so it costs no RAM while the app idles. No window
+closing ever quits the app (`window-all-closed` is ignored unless the tray's
+**Quit** was used).
 
-### Where settings and history live
+### Where settings, history and saved words live
 
-`electron-store` (a thin wrapper around a JSON file) persists the API key,
-theme choice, and search history to a `config.json` file in the OS's
-per-app data folder — on Windows that's
-`%APPDATA%\curious-dictionary-desktop\config.json`. It's separate from the
-project's own `config.js`/`config.example.js`, which only exist as a
-one-time import path for the API key on first run. Because the store reads
-straight from that file, a change made in Settings (like a new API key or
-theme) takes effect on the very next lookup or repaint — no restart needed.
+`electron-store` (a JSON file) in the per-app data folder keeps the API key,
+theme, lookup order, history (words only), saved words (words and dates only)
+and the daily Merriam-Webster call count (a number and a date). Dictionary text
+from Merriam-Webster is never written to disk. Saved-word definitions are read
+live from the pack each time.
+
+### External links
+
+Links open in your browser only for HTTPS URLs on an allowlist:
+services.fetchmate.tech, en.wiktionary.org, kaikki.org, dictionaryapi.com.
+
+## Licences and attribution
+
+- **Dictionary data (offline pack):** from Wiktionary, written by Wiktionary
+  contributors ([en.wiktionary.org](https://en.wiktionary.org)), as extracted by
+  [kaikki.org](https://kaikki.org) (Tatu Ylonen, Wiktextract). Licensed
+  **CC BY-SA 4.0** and **GFDL**. Packs are modified: trimmed and converted to
+  SQLite. Packs stay under the same share-alike licence.
+- **Word frequency:** suggestion ordering uses
+  [FrequencyWords](https://github.com/hermitdave/FrequencyWords) by Hermit
+  Dave, derived from OpenSubtitles, CC BY-SA 4.0.
+- **Merriam-Webster:** optional source via the Merriam-Webster Collegiate
+  Dictionary API with your own key. Merriam-Webster content is never bundled
+  or cached.
+- **Fonts:** Fraunces, Inter and JetBrains Mono, SIL Open Font License 1.1
+  (texts in `src/fonts/`).
+- **Credit:** Built by [Fetchmate Chief Technologies](https://services.fetchmate.tech).
+
+## Internals
 
 ### How select-anywhere lookup works (the clipboard trick)
 

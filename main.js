@@ -1,6 +1,6 @@
 // Main process: the only place with Node/OS access (windows, tray, global
 // shortcuts, network calls, disk-backed settings). The renderers (src/bar/*,
-// src/settings/*) are sandboxed webpages that can't touch any of this
+// src/main-window/*) are sandboxed webpages that can't touch any of this
 // directly — they talk to us through preload.js's bridge.
 const {
   app,
@@ -83,7 +83,6 @@ const resolver = createResolver({
 });
 
 let barWindow = null;
-let settingsWindow = null;
 let mainWindow = null;
 let iconWindow = null;
 let tray = null;
@@ -311,55 +310,19 @@ async function handleSelectionHotkey() {
   showBar({ selection: true, word, hint: null });
 }
 
-function createSettingsWindow() {
-  if (settingsWindow) {
-    settingsWindow.show();
-    settingsWindow.focus();
-    return;
-  }
-
-  const iconPath = path.join(__dirname, "assets", "icons", "tray-icon.png");
-  const isDark = getEffectiveTheme() === "dark";
-
-  settingsWindow = new BrowserWindow({
-    width: 480,
-    height: 500,
-    resizable: false,
-    show: false,
-    title: "Curious Dictionary Settings",
-    icon: iconPath,
-    backgroundColor: isDark ? "#2A211B" : "#FFFFFF",
-    webPreferences: {
-      preload: path.join(__dirname, "preload.js"),
-      contextIsolation: true,
-      nodeIntegration: false,
-    },
-  });
-
-  settingsWindow.setMenuBarVisibility(false);
-
-  settingsWindow.loadFile(
-    path.join(__dirname, "src", "settings", "settings.html"),
-    { query: { theme: getEffectiveTheme() } }
-  );
-
-  settingsWindow.once("ready-to-show", () => settingsWindow.show());
-
-  settingsWindow.on("closed", () => {
-    settingsWindow = null;
-  });
-}
-
 // The full-size window. It is created on demand and DESTROYED when closed
 // (never hidden), so it costs no RAM while the app idles in the tray.
-// options.word opens the window on that word (used by "Open in app" on the bar).
+// options.word opens the window on that word (used by "Open in app" on the
+// bar); options.pane ("settings" | "about") opens that pane (tray > Settings).
 function createMainWindow(options = {}) {
   const word = typeof options.word === "string" ? options.word : "";
+  const pane = ["settings", "about"].includes(options.pane) ? options.pane : "";
   if (mainWindow) {
     if (mainWindow.isMinimized()) mainWindow.restore();
     mainWindow.show();
     mainWindow.focus();
     if (word) mainWindow.webContents.send("show-word", word);
+    if (pane) mainWindow.webContents.send("show-pane", pane);
     return mainWindow;
   }
 
@@ -389,7 +352,7 @@ function createMainWindow(options = {}) {
   mainWindow.webContents.on("will-navigate", (event) => event.preventDefault());
 
   mainWindow.loadFile(path.join(__dirname, "src", "main-window", "index.html"), {
-    query: word ? { theme: getEffectiveTheme(), word } : { theme: getEffectiveTheme() },
+    query: { theme: getEffectiveTheme(), ...(word ? { word } : {}), ...(pane ? { pane } : {}) },
   });
   mainWindow.once("ready-to-show", () => mainWindow.show());
   mainWindow.on("closed", () => {
@@ -499,7 +462,7 @@ function showFloatingIconMenu() {
     { label: fi.pinned ? "Unpin" : "Pin", click: toggleFloatingIconPinned },
     { label: "Hide floating icon", click: () => setFloatingIconEnabled(false) },
     { type: "separator" },
-    { label: "Settings", click: createSettingsWindow },
+    { label: "Settings", click: () => createMainWindow({ pane: "settings" }) },
   ]);
   menu.popup({ window: iconWindow });
 }
@@ -515,7 +478,7 @@ function createTray() {
     Menu.buildFromTemplate([
       { label: "Open Curious", click: () => createMainWindow() },
       { label: "Search (Ctrl+Shift+Space)", click: toggleBar },
-      { label: "Settings", click: createSettingsWindow },
+      { label: "Settings", click: () => createMainWindow({ pane: "settings" }) },
       { type: "separator" },
       {
         label: "Quit",
@@ -530,13 +493,9 @@ function createTray() {
 
 function broadcastTheme() {
   const theme = getEffectiveTheme();
-  const bgForWindows = theme === "dark" ? "#2A211B" : "#FFFFFF";
   BrowserWindow.getAllWindows().forEach((win) => {
     win.webContents.send("theme-changed", theme);
   });
-  if (settingsWindow) {
-    settingsWindow.setBackgroundColor(bgForWindows);
-  }
   if (mainWindow) {
     mainWindow.setBackgroundColor(theme === "dark" ? "#2A211B" : "#FAF7F2");
   }
@@ -639,6 +598,7 @@ app.whenReady().then(() => {
     });
     if (result.response === 1) {
       store.set("history", []);
+      if (mainWindow) mainWindow.webContents.send("history-changed");
       return { cleared: true };
     }
     return { cleared: false };
@@ -655,7 +615,12 @@ app.whenReady().then(() => {
     return true;
   });
 
-  ipcMain.on("open-settings", () => createSettingsWindow());
+  ipcMain.on("open-settings", () => createMainWindow({ pane: "settings" }));
+
+  ipcMain.handle("get-app-info", () => ({
+    version: app.getVersion(),
+    packDir: path.join(app.getPath("userData"), "packs"),
+  }));
 
   ipcMain.handle("save-api-key", (event, key) => {
     store.set("mwApiKey", (key || "").trim());

@@ -87,6 +87,7 @@ function createPack(getPackDir) {
       profile: meta.profile || "",
       version: meta.version || "",
       entries: Number(meta.entry_count) || 0,
+      buildDate: (meta.build_date || "").slice(0, 10),
     };
   }
 
