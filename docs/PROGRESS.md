@@ -19,7 +19,7 @@ Publishing packs: docs/PUBLISHING-PACKS.md.
 | 1b | Release-prep script | done | `npm run pack:release`; not yet uploaded to GitHub |
 | 2a | Electron upgrade + node:sqlite smoke test | done, awaiting Chris's hand-test | own commit; Chris hand-tests shortcuts/clipboard/tray after |
 | 2b | Resolver chain + source badge | done, awaiting Chris's review | limit states 2E/2F, local daily MW call counter (number only) |
-| 1c | Commonness ranking | **next** | before Task 3 (autocomplete). Propose BOTH options with licensing, Chris picks; verify any list's license first |
+| 1c | Commonness ranking | proposal written, **waiting for Chris to pick A or B** | nothing implemented | before Task 3 (autocomplete). Propose BOTH options with licensing, Chris picks; verify any list's license first |
 | 3 | Main window (3A-3D, 3F autocomplete) | pending | local fonts + OFL licenses; then measure step |
 | 4 | Interlinking + Saved (2A, 2B, 3E, 3G) | pending | add Copy / Pin / History to the bar |
 | 5 | Settings / About (4A, 4B, 5A) + README | pending | version 2.0.0; panes in main window; retire old settings window |
@@ -98,8 +98,20 @@ Chris reads these from Task Manager (Details tab, sum of the app's processes); C
 - UNVERIFIED / assumptions: MW's real over-quota response is undocumented; I treat HTTP 429 or a plain-text body mentioning limit/quota as the limit, plus the local 1,000 counter. Visual polish (screenshots) not checked by me; fonts are still system fallbacks until Task 3. Online-first and the MW path were only tested with a fake fetch, not the real API.
 - Suggestions are prefix-based and unranked by commonness (petrikor offers "petrific, Petri net"...), which is what Task 1c is for.
 
-## Notes for the next window (Task 1c)
-- Propose BOTH options with licensing, verify any list's license text, let Chris pick before implementing.
+### Task 1c — Commonness ranking: PROPOSAL ONLY (nothing implemented)
+Experiment on a scratch copy of the core pack (not in the repo). Prefix results, best first:
+- Current (no ranking): "pe" -> peacen, peachy, peahen; "con" -> coname, conapt, concat; "lim" -> limace, limbal.
+- A (open frequency list): "pe" -> people, person, perfect, perhaps; "con" -> control, contact, continue; "ru" -> run, running, Rules; "ser" -> serious, service; "wor" -> work, world, worry.
+- B (pack heuristic: 3 x POS entries + senses + 2 x examples): "pe" -> peel, pelt, pen, PEEP; "con" -> con, content, contract; "petr" -> petrochemical, petrohyoid, petromastoid (obscure).
+A ranks far better. B is decent but promotes short/polysemous oddities and technical terms.
+Option A source verified: hermitdave/FrequencyWords, content/2018/en/en_full.txt (20 MB, 1.66M words, OpenSubtitles 2018). The repo README states "MIT License for code. CC-by-sa-4.0 for content." (repo LICENSE file is MIT, covers code). CC BY-SA 4.0 matches the pack's own licence, so the pack stays CC BY-SA 4.0. Caveat: the list is derived from OpenSubtitles (OPUS) text; I verified the list's stated licence, not the upstream corpus terms.
+Rejected: wordfreq (data CC BY-SA 4.0 per its README, but sunset with a ~2021 snapshot, no plain file, README discourages converting to CSV, SUBTLEX credit required).
+Costs (core pack 140.4 MB): both tables together +12.8 MB; A has only 124,428 rows (of 612,178 pack words) so it is the small part, roughly a few MB (estimate); B has a row per word. Build time: A 4 s, B 22 s. Query time on a 1-letter prefix ("c") via a join was ~150 ms (A) and ~620 ms (B), so the real version should store the rank on the entries rows or an index and autocomplete should start at 2 letters.
+Attribution if A is chosen: About screen + README + NOTICE.txt: "Word frequency data: FrequencyWords by Hermit Dave (github.com/hermitdave/FrequencyWords), derived from OpenSubtitles, CC BY-SA 4.0." Raw list goes in data/ (gitignored); builder gets a --freq flag; unlisted words sort last, alphabetically.
+Recommendation: A. Words not in the list (the long tail, ~80% of pack words) would have no rank and sort last.
+
+## Notes for the next window
+- Chris picks A or B (or neither) for 1c; then implement it as a small builder change, rebuild packs, re-run pack:release, and make pack.js suggest() use the rank. Otherwise continue with Task 3.
 
 ## Old notes (Task 1, done)
 - Input file: `data/kaikki-english.jsonl` in the repo root (Chris downloads the English extract from kaikki.org/dictionary/English and renames it). Check it exists before starting; if not, stop and ask.
