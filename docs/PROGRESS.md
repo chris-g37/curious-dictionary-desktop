@@ -17,12 +17,11 @@ Publishing packs: docs/PUBLISHING-PACKS.md.
 | — | Handoff v2 amendment (docs only) | done | |
 | 1 | Pack builder | done | full core + full packs built; checked with tools/lookup.js |
 | 1b | Release-prep script | done | `npm run pack:release`; not yet uploaded to GitHub |
-| 2a | Electron upgrade + node:sqlite smoke test | done, awaiting Chris's hand-test | own commit; Chris hand-tests shortcuts/clipboard/tray after |
-| 2b | Resolver chain + source badge | done, awaiting Chris's review | limit states 2E/2F, local daily MW call counter (number only) |
-| 1c | Commonness ranking | done (option A), awaiting Chris's review | packs rebuilt as v2026.10.28 |
+| 2a | Electron upgrade + node:sqlite smoke test | done, passed Chris's hand-test | own commit; Chris hand-tests shortcuts/clipboard/tray after |
+| 2b | Resolver chain + source badge | done, passed Chris's review | limit states 2E/2F, local daily MW call counter (number only) |
+| 1c | Commonness ranking | done (option A), passed Chris's review | packs rebuilt as v2026.10.28 |
 | 3 | Main window (3A-3D, 3F autocomplete) | done, reviewed and passed by Chris | measure step recorded (see table) |
-| — | Task 4 | **next** | |
-| 4 | Interlinking + Saved (2A, 2B, 3E, 3G) | pending | add Copy / Pin / History to the bar |
+| 4 | Interlinking + Saved (2A, 2B, 3E, 3G) | **next** | add Copy / Pin / History to the bar |
 | 5 | Settings / About (4A, 4B, 5A) + README | pending | version 2.0.0; panes in main window; retire old settings window |
 | 6 | Offline pack download | pending | replaces "ship the pack"; then measure step |
 | 7 | Shona experiment | pending | report only |
