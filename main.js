@@ -21,6 +21,7 @@ const { execFile } = require("child_process");
 const Store = require("electron-store");
 const { createPack } = require("./src/engine/pack");
 const { createResolver } = require("./src/engine/resolver");
+const { createInstaller } = require("./src/engine/installer");
 
 let config;
 try {
@@ -80,6 +81,16 @@ const resolver = createResolver({
   store,
   getApiKey,
   getSourceMode: () => (store.get("sourceMode") === "online-first" ? "online-first" : "offline-first"),
+});
+
+// Downloads, verifies and installs packs; reports progress to the main window.
+const installer = createInstaller({
+  getPackDir: () => path.join(app.getPath("userData"), "packs"),
+  pack,
+  store,
+  onProgress: (state) => {
+    if (mainWindow) mainWindow.webContents.send("pack-progress", state);
+  },
 });
 
 let barWindow = null;
@@ -504,6 +515,11 @@ function broadcastTheme() {
 app.whenReady().then(() => {
   nativeTheme.themeSource = store.get("theme", "system");
 
+  // Leftovers from a download that was interrupted by a crash or quit.
+  installer.cleanupStale();
+  // A quiet once-a-day look for a newer pack, shortly after startup.
+  setTimeout(() => installer.checkForUpdate(), 20000).unref();
+
   createBarWindow();
   createFloatingIconWindow();
   createTray();
@@ -542,6 +558,45 @@ app.whenReady().then(() => {
   });
 
   ipcMain.handle("get-pack-status", () => pack.info());
+
+  // Pack download (Settings > Offline pack). The daily update check only runs
+  // when it is due, and never downloads anything by itself.
+  ipcMain.handle("pack-state", async () => {
+    const update = await installer.checkForUpdate();
+    return {
+      installed: pack.info(),
+      update,
+      download: installer.getState(),
+      busy: installer.isBusy(),
+    };
+  });
+
+  ipcMain.handle("pack-manifest", async () => {
+    try {
+      const packs = await installer.getManifest();
+      return {
+        ok: true,
+        packs: packs.map((p) => ({
+          id: p.id,
+          profile: p.profile,
+          version: p.version,
+          downloadBytes: p.download_bytes,
+          sizeBytes: p.size_bytes,
+        })),
+      };
+    } catch (err) {
+      return { ok: false, error: err.message || "Couldn't reach the pack list." };
+    }
+  });
+
+  ipcMain.handle("pack-download", async (event, profile) => {
+    if (profile !== "core" && profile !== "full") return { ok: false, error: "Unknown pack." };
+    const result = await installer.download(profile);
+    if (result.ok && mainWindow) mainWindow.webContents.send("pack-changed");
+    return result;
+  });
+
+  ipcMain.on("pack-cancel", () => installer.cancel());
 
   ipcMain.handle("get-history", () => store.get("history", []));
 
@@ -672,6 +727,7 @@ app.on("before-quit", () => {
 
 app.on("will-quit", () => {
   globalShortcut.unregisterAll();
+  installer.cancel();
   pack.close();
 });
 

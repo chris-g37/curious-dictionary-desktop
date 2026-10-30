@@ -41,8 +41,9 @@ let packReady = false;
 let view = "lookup"; // "lookup" | "saved" | "settings" | "about"
 
 function applyLayout() {
+  renderFirstRun();
   // First launch (nothing ever looked up) gets the centered welcome.
-  scrollEl.classList.toggle("hero", view === "lookup" && history.length === 0 && !hasContent);
+  scrollEl.classList.toggle("hero", view === "lookup" && history.length === 0 && !hasContent && (packReady || hasKey));
   scrollEl.classList.toggle("view-pane", view !== "lookup");
   for (const name of ["lookup", "saved", "settings", "about"]) {
     document.getElementById("nav-" + name).classList.toggle("active", view === name);
@@ -227,6 +228,161 @@ function showSavedView() {
   renderSaved();
 }
 
+// ---- Offline pack download (Settings > Offline pack, first-run card) --------
+// The download itself runs in the main process; this only shows its state.
+
+let packUi = { state: null, manifest: null, manifestError: "", lastError: "" };
+let hasKey = false;
+
+const mb = (bytes) => (bytes / 1048576).toFixed(bytes > 100 * 1048576 ? 0 : 1) + " MB";
+
+async function loadPackUi() {
+  const [state, manifest] = await Promise.all([window.api.getPackState(), window.api.getPackManifest()]);
+  packUi.state = state;
+  packUi.manifest = manifest.ok ? manifest.packs : null;
+  packUi.manifestError = manifest.ok ? "" : manifest.error;
+  renderPackSection();
+  renderFirstRun();
+}
+
+function progressHtml() {
+  const d = packUi.state && packUi.state.download;
+  if (!d || d.status === "idle") return "";
+  const label =
+    d.status === "downloading"
+      ? `Downloading… ${mb(d.received)} of ${mb(d.total)}`
+      : d.status === "verifying"
+        ? "Verifying and unpacking…"
+        : "Installing…";
+  const pct = d.status === "downloading" ? Math.min(100, Math.round((d.received / d.total) * 100)) : 100;
+  return `
+    <div class="progress"><div class="progress-bar" data-pct="${pct}"></div></div>
+    <div class="progress-row"><span>${esc(label)}</span>${
+      d.status === "downloading" ? '<button class="link" data-pack-cancel type="button">Cancel</button>' : ""
+    }</div>`;
+}
+
+// The progress bar width is set from script (the page's CSP forbids inline styles).
+function sizeProgressBars(root) {
+  root.querySelectorAll(".progress-bar").forEach((el) => {
+    el.style.width = el.dataset.pct + "%";
+  });
+}
+
+function packButtonsHtml() {
+  const busy = packUi.state && packUi.state.download && packUi.state.download.status !== "idle";
+  if (busy) return "";
+  if (!packUi.manifest) {
+    return `<div class="row-sub">${esc(packUi.manifestError || "Checking the pack list…")}</div>
+            <div class="pack-actions"><button class="btn" data-pack-retry type="button">Try again</button></div>`;
+  }
+  const installed = packUi.state && packUi.state.installed;
+  return `<div class="pack-actions">${["core", "full"]
+    .map((profile) => {
+      const p = packUi.manifest.find((x) => x.profile === profile);
+      if (!p) return "";
+      const name = profile === "core" ? "Core" : "Full";
+      const same = installed && installed.profile === profile;
+      return `<button class="btn${same ? "" : " btn-primary"}" data-pack-download="${profile}" type="button">${
+        same ? "Restore / re-download" : `Download ${name}`
+      } (${mb(p.downloadBytes)})</button>`;
+    })
+    .join("")}</div>
+    <div class="row-sub">Core: everyday senses, one example each. Full: more senses, two examples and word origins. Either one works fully offline.</div>`;
+}
+
+function wirePackControls(root) {
+  sizeProgressBars(root);
+  root.querySelectorAll("[data-pack-download]").forEach((b) =>
+    b.addEventListener("click", () => startPackDownload(b.dataset.packDownload))
+  );
+  root.querySelectorAll("[data-pack-cancel]").forEach((b) =>
+    b.addEventListener("click", () => window.api.cancelPackDownload())
+  );
+  root.querySelectorAll("[data-pack-retry]").forEach((b) => b.addEventListener("click", loadPackUi));
+}
+
+async function startPackDownload(profile) {
+  packUi.lastError = "";
+  packUi.state = { ...(packUi.state || {}), download: { status: "downloading", received: 0, total: 1 } };
+  renderPackSection();
+  renderFirstRun();
+  const result = await window.api.downloadPack(profile);
+  if (!result.ok && !result.cancelled) packUi.lastError = result.error;
+  await loadPackStatus();
+  await loadPackUi();
+}
+
+function renderPackSection() {
+  const el = document.getElementById("pack-section");
+  if (!el || !packUi.state) {
+    if (el) el.innerHTML = '<div class="row"><div class="row-sub">Checking the offline pack…</div></div>';
+    return;
+  }
+  const inst = packUi.state.installed;
+  const upd = packUi.state.update;
+  const head = inst
+    ? `<div><div class="row-title"><span class="status-dot on"></span>${inst.language === "en" ? "English" : esc(inst.language)} pack (${esc(inst.profile)})</div>
+        <div class="row-mono">curious-${esc(inst.language)}-${esc(inst.profile)} · ${inst.entries.toLocaleString()} entries · version ${esc(inst.version)} · built ${esc(inst.buildDate)}</div></div>
+        <span class="row-state">Installed</span>`
+    : `<div><div class="row-title"><span class="status-dot"></span>No offline pack installed</div>
+        <div class="row-sub">Download one to look words up with no internet connection.</div></div>
+        <span class="row-state off">Not installed</span>`;
+  el.innerHTML = `
+    <div class="row">${head}</div>
+    <div class="row pack-body">
+      <div class="pack-col">
+        ${upd ? `<div class="update-note">Update available · version ${esc(upd.version)}</div>` : ""}
+        ${progressHtml()}
+        ${packUi.lastError ? `<div class="pack-error">${esc(packUi.lastError)}</div>` : ""}
+        ${packButtonsHtml()}
+      </div>
+    </div>`;
+  wirePackControls(el);
+}
+
+// Design: friendly full-window card when there is neither a pack nor a key.
+function renderFirstRun() {
+  const el = document.getElementById("firstrun");
+  const show = view === "lookup" && !hasContent && !packReady && !hasKey;
+  scrollEl.classList.toggle("firstrun", show);
+  if (!show) {
+    el.innerHTML = "";
+    return;
+  }
+  const core = packUi.manifest && packUi.manifest.find((p) => p.profile === "core");
+  const busy = packUi.state && packUi.state.download && packUi.state.download.status !== "idle";
+  el.innerHTML = `
+    <h1>Download the offline pack <i>to get started</i>.</h1>
+    <p>Curious Dictionary looks words up on your own computer, so it works without an internet connection. The pack is a one-time download.</p>
+    ${progressHtml()}
+    ${packUi.lastError ? `<div class="pack-error">${esc(packUi.lastError)}</div>` : ""}
+    ${
+      busy
+        ? ""
+        : core
+          ? `<button class="btn btn-primary" data-pack-download="core" type="button">Download Core (${mb(core.downloadBytes)})</button>`
+          : `<div class="row-sub">${esc(packUi.manifestError || "Checking the pack list…")}</div><button class="btn" data-pack-retry type="button">Try again</button>`
+    }
+    <p class="firstrun-alt">Prefer Merriam-Webster? <button class="link" id="firstrun-settings" type="button">Add an API key in Settings</button></p>
+  `;
+  wirePackControls(el);
+  document.getElementById("firstrun-settings").addEventListener("click", showSettingsView);
+}
+
+window.api.onPackProgress((state) => {
+  if (!packUi.state) return;
+  packUi.state.download = state;
+  renderPackSection();
+  renderFirstRun();
+});
+
+window.api.onPackChanged(async () => {
+  await loadPackStatus();
+  if (view === "lookup" && !hasContent) renderRecents();
+  renderFirstRun();
+});
+
 // ---- Settings (4A) ----------------------------------------------------------
 // Every control reads its state from the main process and writes straight
 // back; nothing is cached here.
@@ -235,26 +391,8 @@ const EYE =
   '<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>';
 
 async function renderSettings() {
-  const [settings, pack, fi, info] = await Promise.all([
-    window.api.getSettings(),
-    window.api.getPackStatus(),
-    window.api.getFloatingIconSettings(),
-    window.api.getAppInfo(),
-  ]);
+  const [settings, fi] = await Promise.all([window.api.getSettings(), window.api.getFloatingIconSettings()]);
   if (view !== "settings") return;
-
-  const packRow = pack
-    ? `<div class="row">
-         <div><div class="row-title"><span class="status-dot on"></span>${pack.language === "en" ? "English" : esc(pack.language)} pack (${esc(pack.profile)})</div>
-         <div class="row-mono">${pack.entries.toLocaleString()} entries · version ${esc(pack.version)} · built ${esc(pack.buildDate)}</div></div>
-         <span class="row-state">Installed</span>
-       </div>`
-    : `<div class="row">
-         <div><div class="row-title"><span class="status-dot"></span>No offline pack installed</div>
-         <div class="row-sub">Downloading a pack from inside the app is coming in a later update. For now, copy a pack file (curious-en-core.db or curious-en-full.db) into:</div>
-         <div class="row-mono">${esc(info.packDir)}</div></div>
-         <span class="row-state off">Not installed</span>
-       </div>`;
 
   contentEl.innerHTML = `
     <div class="pane">
@@ -270,7 +408,7 @@ async function renderSettings() {
             <button type="button" data-mode="online-first">Online first</button>
           </div>
         </div>
-        ${packRow}
+        <div id="pack-section"></div>
         <div class="key-block">
           <div class="key-head">
             <div><div class="row-title">Merriam-Webster API key</div>
@@ -318,6 +456,9 @@ async function renderSettings() {
     </div>
   `;
 
+  renderPackSection();
+  loadPackUi();
+
   const keyInput = document.getElementById("api-key");
   keyInput.value = settings.apiKey || "";
   let flashTimer = null;
@@ -328,6 +469,7 @@ async function renderSettings() {
   };
   const saveKey = async () => {
     await window.api.saveApiKey(keyInput.value);
+    hasKey = keyInput.value.trim() !== "";
     flash(document.getElementById("key-status"), "Saved");
   };
   keyInput.addEventListener("blur", saveKey);
@@ -831,7 +973,9 @@ window.addEventListener("focus", () => {
 });
 
 (async function boot() {
+  hasKey = Boolean(((await window.api.getSettings()).apiKey || "").trim());
   await Promise.all([refreshHistory(), loadPackStatus(), refreshSavedCount()]);
+  if (!packReady && !hasKey) loadPackUi();
   renderRecents();
   input.focus();
   // Opened from the bar's "Open in app": go straight to that word.

@@ -39,15 +39,24 @@ else) and shows a notice when the limit is reached.
    ```
 
 2. Get an offline pack. Packs are not stored in this repo or bundled in the
-   installer. Build one yourself (see [tools/README.md](tools/README.md)) or
-   use a published one (see [docs/PUBLISHING-PACKS.md](docs/PUBLISHING-PACKS.md)),
-   then copy the `.db` file into the app's `packs` folder:
+   installer; the app downloads one on demand. On a first run with no pack and
+   no API key the window offers **Download the offline pack to get started**.
+   Any time later: **Settings → Dictionary → Offline pack** shows what is
+   installed and offers **Download Core**, **Download Full** and
+   **Restore / re-download**, with progress and Cancel. Downloads come from the
+   `packs` release on GitHub, are checked against a SHA-256 in the published
+   manifest, and only replace your current pack once they verify. The app
+   checks for a newer pack at most once a day and only shows a quiet "Update
+   available" note; it never downloads by itself.
+
+   Prefer to build one yourself? See [tools/README.md](tools/README.md); to
+   publish packs see [docs/PUBLISHING-PACKS.md](docs/PUBLISHING-PACKS.md). A
+   hand-built pack can be copied into the app's `packs` folder:
 
    - running with `npm start`: `%APPDATA%\curious-dictionary-desktop\packs\`
    - installed app: `%APPDATA%\Curious Dictionary\packs\`
 
    The app uses `curious-en-full.db` if present, otherwise `curious-en-core.db`.
-   Settings shows whether a pack is installed. In-app download is planned.
 
 3. Optional: add a Merriam-Webster API key. Open **Settings** (tray menu, or
    the Settings item in the main window) and paste the key into the
@@ -101,7 +110,7 @@ the offline pack, the raw data, `tools/` or `docs/` (see `electron-builder.yml`)
 - `src/engine/`: the lookup engine. `pack.js` reads the offline pack with
   Node's built-in `node:sqlite`; `mw.js` calls Merriam-Webster; `resolver.js`
   decides the order, normalizes results to one shape and keeps the daily call
-  counter.
+  counter; `installer.js` downloads, verifies and installs packs.
 - `src/bar/`: the summon bar renderer.
 - `src/main-window/`: the main window renderer (look up, Saved, Settings,
   About).
@@ -135,6 +144,9 @@ live from the pack each time.
 
 Links open in your browser only for HTTPS URLs on an allowlist:
 services.fetchmate.tech, en.wiktionary.org, kaikki.org, dictionaryapi.com.
+Pack downloads have their own separate allowlist (github.com and the
+release-assets.githubusercontent.com host GitHub redirects assets to), checked
+on every redirect hop.
 
 ## Licences and attribution
 

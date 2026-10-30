@@ -1310,3 +1310,119 @@ footer {
 .attrib button.link {
   font-size: inherit;
 }
+
+/* ---- Offline pack download ---- */
+
+.pack-body {
+  display: block;
+}
+
+.pack-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pack-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.update-note {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--terra-ink);
+}
+
+.pack-error {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--terra-bg);
+  color: var(--terra-ink);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.progress {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--line-strong);
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  width: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  transition: width 0.15s;
+}
+
+.progress-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+#firstrun {
+  display: none;
+  max-width: 460px;
+  text-align: center;
+}
+
+#scroll.firstrun {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 64px;
+}
+
+#scroll.firstrun #firstrun {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+#scroll.firstrun #searchwrap,
+#scroll.firstrun #hero,
+#scroll.firstrun #press-hint {
+  display: none;
+}
+
+#firstrun h1 {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 38px;
+  font-weight: 300;
+  letter-spacing: -0.03em;
+  line-height: 1.12;
+}
+
+#firstrun h1 i {
+  color: var(--accent);
+  font-weight: 400;
+}
+
+#firstrun p {
+  margin: 0;
+  max-width: 400px;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--mid);
+}
+
+#firstrun .progress,
+#firstrun .progress-row {
+  width: 100%;
+}
+
+.firstrun-alt {
+  margin-top: 8px !important;
+  font-size: 12.5px !important;
+  color: var(--muted) !important;
+}

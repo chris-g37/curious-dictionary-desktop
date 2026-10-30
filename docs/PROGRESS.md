@@ -22,9 +22,9 @@ Publishing packs: docs/PUBLISHING-PACKS.md.
 | 1c | Commonness ranking | done (option A), passed Chris's review | packs rebuilt as v2026.10.28 |
 | 3 | Main window (3A-3D, 3F autocomplete) | done, reviewed and passed by Chris | measure step recorded (see table) |
 | 4 | Interlinking + Saved (2A, 2B, 3E, 3G) | done, passed Chris's review | add Copy / Pin / History to the bar |
-| 5 | Settings / About (4A, 4B, 5A) + README | done, awaiting Chris's review | version 2.0.0; panes in main window; retire old settings window |
-| 6 | Offline pack download | **next** | replaces "ship the pack"; then measure step |
-| 7 | Shona experiment | pending | report only |
+| 5 | Settings / About (4A, 4B, 5A) + README | done, passed Chris's review | version 2.0.0; panes in main window; retire old settings window |
+| 6 | Offline pack download | done, awaiting Chris's review + measure step | replaces "ship the pack"; then measure step |
+| 7 | Shona experiment | **next** | report only |
 
 ## Decisions
 - A) Settings and About are main-window panes. Tray > Settings opens that pane; the old settings window is retired in Task 5.
@@ -154,9 +154,23 @@ Recommendation: A. Words not in the list (the long tail, ~80% of pack words) wou
 - Checked with probes: tray Settings opens the main window on the Settings pane, pack row correct, source toggle persists (and was reset), About shows the version and attributions, window reopens after close. Real-app clicking for Chris to do. Note the About version only reads 2.0.0 after this commit's package.json is used (probe ran before the bump).
 - Gaps: creativecommons.org/GitHub URLs are plain text on About (not on the openExternal allowlist). The packaged installer was not built or run.
 
-## Notes for the next window (Task 6)
-- Offline pack download: manifest at the GitHub Release `packs` (see docs/PUBLISHING-PACKS.md); the new packs (v2026.10.28) are built and release-prepped locally but NOT yet uploaded. Ask Chris to upload before testing the download.
-- Settings pane has a not-installed row that mentions copying a pack by hand; replace it with a Download button + progress.
+### Task 6 — Offline pack download
+- New src/engine/installer.js (main process). Flow: fetch manifest (schema 1, every entry validated: id regex, date version, sizes, 64-hex hashes, https + allowlisted host) -> download .gz to <packs>/.<id>.part hashing while writing -> check size + SHA-256 (gz) -> gunzip to <packs>/.<id>.tmp (capped at the manifest size, hashed) -> check size + SHA-256 (db) -> open read-only and check meta pack_id + version -> close our handle, rename over <id>.db, remove the other profile so one English pack remains. Any failure deletes both temp files and leaves the existing pack untouched. Stale temp files are cleaned at startup. Cancel aborts the stream. File names come from the validated id, never the URL.
+- Hosts: observed from a real download: https://github.com/... answers 302 to https://release-assets.githubusercontent.com/github-production-release-asset/... (single hop, 200, Content-Length 69,505,533 = the manifest's download_bytes). Redirects are followed manually and every hop is checked against DOWNLOAD_HOSTS = { github.com, release-assets.githubusercontent.com }. DEVIATION: this is a separate constant from the openExternal allowlist (ALLOWED_EXTERNAL_HOSTS), not added to it, so the browser-link allowlist stays as CLAUDE.md lists it.
+- Update check: once a day at most (store key packCheck = { checkedAt, latest: {id: version} }), 20 s after startup and when Settings opens if due; failures are silent; it only records versions and the pane shows a quiet "Update available · version X". Never downloads by itself.
+- UI: Settings > Dictionary > Offline pack section (installed id/version/entries/build date, progress bar + Cancel, errors, Download Core / Download Full / Restore / re-download with sizes from the manifest). First-run full-window card ("Download the offline pack to get started", Download Core, link to add a key) when there is neither pack nor key. Progress is pushed from main (pack-progress), Bar shows the existing messages; resolver error text now points at the download.
+- Tests: node tools/test-installer.js (11 cases, fake fetch with the real redirect shape): success, bad manifest entries, tampered gz, bad db hash, wrong pack identity, redirect to a non-allowlisted host, cancel, core replaces full, re-download while the pack is open, stale temp cleanup, update-check gating. All pass.
+- REAL download under npm start (probe driving the actual UI): with the dev pack moved aside and the dev API key temporarily cleared (restored afterwards), the first-run card appeared, Download Core fetched 66.3 MB from the live release in 209 s (while npm run build was also running), temp files .part/.tmp appeared and vanished, the installed file is 149,426,176 bytes with SHA-256 06a63673... equal to the manifest, the badge then read "Offline · Wiktionary" for petrichor and Settings showed the installed pack with "Restore / re-download (66.3 MB)" and "Download Full (77.5 MB)".
+- npm run build (existence/size only, exe NOT launched): dist/Curious Dictionary-2.0.0-portable.exe 101,535,020 bytes, ...-setup.exe 101,743,297 bytes (the 0.1.0 pair was ~70 MB; Electron 45 is bigger). app.asar is 1.9 MB and contains no .db, data, dist-pack, tools, docs or config.js (checked with asar list). The old 0.1.0 artifacts are still in dist/ (gitignored).
+- Not verified: the Full download, the Update available note against a newer manifest (covered by the fake-fetch test only), Cancel from the real UI, the packaged exe with no pack (needs Chris, hand test).
+- MEASURE STEP (pending): Chris reads Task Manager (sum of the app's processes): (a) idle in tray, (b) main window open with a word looked up. Please close any other Electron windows first so there is a single app group.
+
+| When | Idle in tray | Main window open + word looked up |
+|---|---|---|
+| After Task 6 | — | — |
+
+## Notes for the next window (Task 7)
+- Shona experiment: needs data/kaikki-shona.jsonl from Chris; report only, do not wire in.
 
 ## Old notes (Task 1, done)
 - Input file: `data/kaikki-english.jsonl` in the repo root (Chris downloads the English extract from kaikki.org/dictionary/English and renames it). Check it exists before starting; if not, stop and ask.

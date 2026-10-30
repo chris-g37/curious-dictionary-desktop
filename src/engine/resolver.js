@@ -101,7 +101,7 @@ function createResolver({ pack, store, getApiKey, getSourceMode, fetchFn }) {
     if (!hasKey && !hasPack) {
       return {
         ok: false,
-        error: "No offline pack is installed and no API key is set. Open Settings from the tray icon.",
+        error: "No offline pack is installed and no API key is set. Open Curious from the tray icon and download the offline pack in Settings.",
       };
     }
 

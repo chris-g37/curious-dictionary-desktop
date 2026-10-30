@@ -28,6 +28,13 @@ contextBridge.exposeInMainWorld("api", {
   getAppInfo: () => ipcRenderer.invoke("get-app-info"),
   onShowPane: (callback) => ipcRenderer.on("show-pane", (event, pane) => callback(pane)),
 
+  getPackState: () => ipcRenderer.invoke("pack-state"),
+  getPackManifest: () => ipcRenderer.invoke("pack-manifest"),
+  downloadPack: (profile) => ipcRenderer.invoke("pack-download", profile),
+  cancelPackDownload: () => ipcRenderer.send("pack-cancel"),
+  onPackProgress: (callback) => ipcRenderer.on("pack-progress", (event, state) => callback(state)),
+  onPackChanged: (callback) => ipcRenderer.on("pack-changed", () => callback()),
+
   getRecentHistory: () => ipcRenderer.invoke("get-recent-history"),
   requestClearHistory: () => ipcRenderer.invoke("request-clear-history"),
 
