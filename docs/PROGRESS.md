@@ -16,15 +16,16 @@ Publishing packs: docs/PUBLISHING-PACKS.md.
 | 0 | Handoff system | done | |
 | — | Handoff v2 amendment (docs only) | done | |
 | 1 | Pack builder | done | full core + full packs built; checked with tools/lookup.js |
-| 1b | Release-prep script | done | `npm run pack:release`; not yet uploaded to GitHub |
+| 1b | Release-prep script | done | `npm run pack:release`; packs v2026.10.28 published to the `packs` release |
 | 2a | Electron upgrade + node:sqlite smoke test | done, passed Chris's hand-test | own commit; Chris hand-tests shortcuts/clipboard/tray after |
 | 2b | Resolver chain + source badge | done, passed Chris's review | limit states 2E/2F, local daily MW call counter (number only) |
 | 1c | Commonness ranking | done (option A), passed Chris's review | packs rebuilt as v2026.10.28 |
 | 3 | Main window (3A-3D, 3F autocomplete) | done, reviewed and passed by Chris | measure step recorded (see table) |
 | 4 | Interlinking + Saved (2A, 2B, 3E, 3G) | done, passed Chris's review | add Copy / Pin / History to the bar |
 | 5 | Settings / About (4A, 4B, 5A) + README | done, passed Chris's review | version 2.0.0; panes in main window; retire old settings window |
-| 6 | Offline pack download | done, awaiting Chris's review + measure step | replaces "ship the pack"; then measure step |
-| 7 | Shona experiment | **next** | report only |
+| 6 | Offline pack download | done, measured | real download from the live release verified |
+| 7 | Shona experiment | deferred by Chris | report only; not started |
+| — | Finalisation (Opus review) + merge to main | done | see Finalisation below |
 
 ## Decisions
 - A) Settings and About are main-window panes. Tray > Settings opens that pane; the old settings window is retired in Task 5.
@@ -39,15 +40,23 @@ Chris reads these from Task Manager (Details tab, sum of the app's processes); C
 | When | Idle in tray | Main window open + word looked up |
 |---|---|---|
 | After Task 3 | 224.1 MB (Electron, 3 processes) | 433.3 MB (Electron 3 procs 249.0 MB + Electron 6 procs 184.3 MB) |
+| After Task 6 | not captured (see note) | 120.1 MB (one Electron group, 6 processes) |
 
-Notes: read from Task Manager > Processes (grouped), under `npm start` (dev build, not the packaged exe). The two Electron groups in (b) are unexplained: one app should be a single group, so the 6-process group may be a second instance or a leftover; re-measure with the Details tab if the number matters.
-| After Task 6 | — | — |
+Notes:
+- All readings from Task Manager > Processes under `npm start` (dev build, not the packaged exe).
+- After Task 3 (b): the two Electron groups were most likely two running copies of the app; the app had no single-instance lock then. The finalisation pass added one, and After Task 6 (b) shows a single group at 120.1 MB.
+- After Task 6 (a): the screenshot showed no Electron rows. With no window open, Windows lists the app's processes one by one under "Background processes" as "Electron", lower down than the screenshot reached. The "A minimalist Windows dictionar…" row (2.8 MB) is a different process: that name is the package description, which only the packaged exe carries. It is probably a leftover from the installed or portable build. To read (a): Details tab, sort by name, add up every electron.exe row.
 
 ## Backlog (not scheduled)
 - Keyboard shortcut recording in Settings (design 4A "Record").
 - Double-click lookup (design 4A, marked Experimental).
 - Launch at startup (design 4A).
-- FTS5 search, only if the 2a smoke test shows it works.
+- FTS5 search: the 2a smoke test showed FTS5 works under Electron 45; still not needed.
+- Task 7 Shona experiment (deferred).
+- Distribution: GitHub Releases for the installer, code signing (SmartScreen), Microsoft Store (MSIX via electron-builder appx target), auto-update via electron-updater, privacy policy page.
+- Bar window: add a CSP and the bundled fonts.
+- Custom title bar per design; filled Saved icon when active.
+- Re-measure (a) idle in tray via the Details tab.
 
 ## Task log
 
@@ -130,11 +139,7 @@ Recommendation: A. Words not in the list (the long tail, ~80% of pack words) wou
 - main.js: openExternal now an HTTPS host allowlist (services.fetchmate.tech, en.wiktionary.org, kaikki.org, dictionaryapi.com), as CLAUDE.md says. New IPC: complete-word, get-pack-status, get-history, copy-text, history-changed event.
 - Checked with probes under Electron (light + dark, screenshots): fonts load, autocomplete, result, not-found, recents, hero; tray item opens the window and close destroys it.
 - Deviations to flag: native title bar instead of the design's custom one; no Saved item yet; "Open Curious" is only reachable from the tray menu.
-- MEASURE STEP (recorded below): Chris reads Task Manager > Details, sum of the app's processes, for (a) idle in tray and (b) main window open with a word looked up, and gives me the numbers to record here.
-
-| When | Idle in tray | Main window open + word looked up |
-|---|---|---|
-| After Task 3 | — | — |
+- Measure step: recorded in the Memory measurements table at the top.
 
 ### Task 4 — Interlinking + Saved
 - main.js is the single source of truth: store key `saved` = [{ word, savedAt }] (words and dates only). IPC: get-saved (adds a live gloss from the pack each time, never stored), is-saved, toggle-saved, remove-saved, open-in-main-window; events saved-changed (broadcast to every window) and show-word. Renderers only ask and reflect.
@@ -163,14 +168,20 @@ Recommendation: A. Words not in the list (the long tail, ~80% of pack words) wou
 - REAL download under npm start (probe driving the actual UI): with the dev pack moved aside and the dev API key temporarily cleared (restored afterwards), the first-run card appeared, Download Core fetched 66.3 MB from the live release in 209 s (while npm run build was also running), temp files .part/.tmp appeared and vanished, the installed file is 149,426,176 bytes with SHA-256 06a63673... equal to the manifest, the badge then read "Offline · Wiktionary" for petrichor and Settings showed the installed pack with "Restore / re-download (66.3 MB)" and "Download Full (77.5 MB)".
 - npm run build (existence/size only, exe NOT launched): dist/Curious Dictionary-2.0.0-portable.exe 101,535,020 bytes, ...-setup.exe 101,743,297 bytes (the 0.1.0 pair was ~70 MB; Electron 45 is bigger). app.asar is 1.9 MB and contains no .db, data, dist-pack, tools, docs or config.js (checked with asar list). The old 0.1.0 artifacts are still in dist/ (gitignored).
 - Not verified: the Full download, the Update available note against a newer manifest (covered by the fake-fetch test only), Cancel from the real UI, the packaged exe with no pack (needs Chris, hand test).
-- MEASURE STEP (pending): Chris reads Task Manager (sum of the app's processes): (a) idle in tray, (b) main window open with a word looked up. Please close any other Electron windows first so there is a single app group.
+- Measure step: recorded in the Memory measurements table at the top.
 
-| When | Idle in tray | Main window open + word looked up |
-|---|---|---|
-| After Task 6 | — | — |
+### Finalisation (Opus review before merging to main)
+- Checked: tracked files are only source, docs, icons, fonts and licences. config.js, data/, dist/, dist-pack/ and *.db have never been in git history; no API-key-shaped strings in any commit. .gitignore covers node_modules, config.js, dist, data, dist-pack, *.db. Both test scripts pass and every JS file parses. app.asar (1.9 MB) has no packs, data, tools, docs or config.js. All CLAUDE.md rules hold: sandboxed renderers with a fixed preload API, MW content never stored, credit in the main window footer, About pane and README (not in the bar), openExternal limited to https on the allowlist, fonts local with OFL texts, packs downloaded not bundled, main window destroyed on close, bar hidden-but-alive, floating icon off by default, pack read page by page via node:sqlite.
+- Fixed in this pass (main.js):
+  - Single-instance lock. A second launch now opens the running copy's main window instead of starting a second tray and fighting over the shortcuts. Probe: the second `npx electron .` exited in 3 s and the first copy opened its main window. This also explains the double Electron group in the Task 3 measurement.
+  - getApiKey no longer falls back to config.js after the one-time migration, so clearing the key in Settings really turns Merriam-Webster off (it only mattered in dev, since config.js is not packaged).
+  - IPC input checks: lookup-word rejects non-strings and words over 100 characters; save-theme accepts only light/dark/system.
+  - Stale comments updated.
+- Not changed (noted for later): the bar window has no CSP and still uses system fonts; native title bar instead of the design's custom one; the Saved nav icon is not filled when active; global shortcut registration failures are silent.
 
-## Notes for the next window (Task 7)
-- Shona experiment: needs data/kaikki-shona.jsonl from Chris; report only, do not wire in.
+## Notes for the next window
+- Task 7 (Shona) is deferred until Chris asks for it; it needs data/kaikki-shona.jsonl.
+- Distribution (Microsoft Store / GitHub Releases / code signing) has been discussed but not started; see the backlog.
 
 ## Old notes (Task 1, done)
 - Input file: `data/kaikki-english.jsonl` in the repo root (Chris downloads the English extract from kaikki.org/dictionary/English and renames it). Check it exists before starting; if not, stop and ask.

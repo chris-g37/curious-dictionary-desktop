@@ -2,6 +2,14 @@
 
 Build-time scripts. None of this ships inside the app (see `electron-builder.yml`).
 
+## Tests and checks
+
+No test framework; each script prints PASS/FAIL lines and exits non-zero on failure.
+
+- `node tools/test-resolver.js`: resolver chain, limit states, counter, suggestions (uses the real pack in dist-pack/).
+- `node tools/test-installer.js`: pack download/verify/install, cancel, tampering, host allowlist, update-check gating (fake network, no Electron).
+- `npx electron tools/smoke-sqlite.js`: confirms node:sqlite works in Electron's main process.
+
 ## Dev lookup (`lookup.js`)
 
 `node tools/lookup.js ran colour petrichor` prints what `dist-pack/curious-en-core.db` returns, following redirects. `--pack <file>` picks another pack.

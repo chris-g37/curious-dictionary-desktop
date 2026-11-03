@@ -73,8 +73,9 @@ function isAllowedExternalUrl(url) {
 const ICON_WINDOW_SIZE = 44;
 
 // The offline pack lives in <userData>/packs/ (curious-en-full.db preferred,
-// else curious-en-core.db). Until the download task exists it is copied there
-// by hand; if it is missing the offline source is simply unavailable.
+// else curious-en-core.db). It is downloaded from Settings (installer below)
+// or copied there by hand; if it is missing the offline source is simply
+// unavailable.
 const pack = createPack(() => path.join(app.getPath("userData"), "packs"));
 const resolver = createResolver({
   pack,
@@ -103,8 +104,10 @@ function getEffectiveTheme() {
   return nativeTheme.shouldUseDarkColors ? "dark" : "light";
 }
 
+// The store is the only source once the one-time config.js migration above
+// has run, so clearing the key in Settings really turns Merriam-Webster off.
 function getApiKey() {
-  return store.get("mwApiKey") || config.MW_API_KEY || "";
+  return store.get("mwApiKey") || "";
 }
 
 function getCenteredBounds(height) {
@@ -512,7 +515,20 @@ function broadcastTheme() {
   }
 }
 
+// One copy of the app at a time: a second launch (say, the Start Menu
+// shortcut clicked while the app sits in the tray) just opens the main window
+// of the copy that is already running, instead of a second tray icon fighting
+// over the same global shortcuts.
+const gotSingleInstanceLock = app.requestSingleInstanceLock();
+if (!gotSingleInstanceLock) {
+  isQuitting = true;
+  app.quit();
+} else {
+  app.on("second-instance", () => createMainWindow());
+}
+
 app.whenReady().then(() => {
+  if (!gotSingleInstanceLock) return;
   nativeTheme.themeSource = store.get("theme", "system");
 
   // Leftovers from a download that was interrupted by a crash or quit.
@@ -543,7 +559,10 @@ app.whenReady().then(() => {
   });
 
   ipcMain.handle("lookup-word", async (event, word) => {
-    const result = await resolver.resolve(word);
+    if (typeof word !== "string" || !word.trim() || word.length > 100) {
+      return { ok: false, error: "That doesn't look like a word." };
+    }
+    const result = await resolver.resolve(word.trim());
     if (result.ok && result.found) {
       saveHistoryEntry(result.entry);
       if (mainWindow) mainWindow.webContents.send("history-changed");
@@ -683,6 +702,7 @@ app.whenReady().then(() => {
   });
 
   ipcMain.handle("save-theme", (event, theme) => {
+    if (!["light", "dark", "system"].includes(theme)) return false;
     store.set("theme", theme);
     nativeTheme.themeSource = theme;
     broadcastTheme();
@@ -731,7 +751,6 @@ app.on("will-quit", () => {
   pack.close();
 });
 
-// History keeps words only (never definitions), whichever source answered.
 function cleanSavedWord(word) {
   return typeof word === "string" ? word.replace(/·/g, "").trim().slice(0, 60) : "";
 }
@@ -745,6 +764,7 @@ function broadcastSavedChanged() {
   BrowserWindow.getAllWindows().forEach((win) => win.webContents.send("saved-changed"));
 }
 
+// History keeps words only (never definitions), whichever source answered.
 function saveHistoryEntry(found) {
   const entry = {
     word: found.word,
