@@ -54,6 +54,7 @@ if (!store.get("mwApiKey") && config.MW_API_KEY) {
 const BAR_WIDTH = 640;
 const INITIAL_HEIGHT = 64;
 const TOP_OFFSET_RATIO = 0.15;
+const BOTTOM_MARGIN = 12;
 // Only https links to these hosts may be opened in the user's browser.
 const ALLOWED_EXTERNAL_HOSTS = new Set([
   "services.fetchmate.tech",
@@ -110,14 +111,22 @@ function getApiKey() {
   return store.get("mwApiKey") || "";
 }
 
+function getMaxBarHeight() {
+  const { height: workHeight } = screen.getPrimaryDisplay().workArea;
+  const topOffset = Math.round(workHeight * TOP_OFFSET_RATIO);
+  return Math.max(240, workHeight - topOffset - BOTTOM_MARGIN);
+}
+
 function getCenteredBounds(height) {
-  const { width: screenWidth, height: screenHeight } =
-    screen.getPrimaryDisplay().workAreaSize;
+  const { x: workX, y: workY, width: workWidth, height: workHeight } =
+    screen.getPrimaryDisplay().workArea;
+  const maxHeight = getMaxBarHeight();
+  const clampedHeight = Math.max(INITIAL_HEIGHT, Math.min(Math.round(height), maxHeight));
   return {
-    x: Math.round((screenWidth - BAR_WIDTH) / 2),
-    y: Math.round(screenHeight * TOP_OFFSET_RATIO),
+    x: workX + Math.round((workWidth - BAR_WIDTH) / 2),
+    y: workY + Math.round(workHeight * TOP_OFFSET_RATIO),
     width: BAR_WIDTH,
-    height,
+    height: clampedHeight,
   };
 }
 
@@ -140,8 +149,11 @@ function createBarWindow() {
     },
   });
 
+  barWindow.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
+  barWindow.webContents.on("will-navigate", (event) => event.preventDefault());
+
   barWindow.loadFile(path.join(__dirname, "src", "bar", "bar.html"), {
-    query: { theme: getEffectiveTheme() },
+    query: { theme: getEffectiveTheme(), maxHeight: String(getMaxBarHeight()) },
   });
 
   barWindow.on("blur", () => {
@@ -159,10 +171,11 @@ function showBar(options = {}) {
   if (!barWindow) return;
   const { selection = false, word = null, hint = null } = options;
   const bounds = barWindow.getBounds();
+  const maxHeight = getMaxBarHeight();
   barWindow.setBounds(getCenteredBounds(bounds.height));
   barWindow.show();
   barWindow.focus();
-  barWindow.webContents.send("bar-shown", { selection, word, hint });
+  barWindow.webContents.send("bar-shown", { selection, word, hint, maxHeight });
 }
 
 function hideBar() {
@@ -552,7 +565,7 @@ app.whenReady().then(() => {
   ipcMain.on("hide-bar", () => hideBar());
 
   ipcMain.on("resize-bar", (event, contentHeight) => {
-    if (!barWindow) return;
+    if (!barWindow || typeof contentHeight !== "number" || !Number.isFinite(contentHeight)) return;
     const bounds = barWindow.getBounds();
     const nextBounds = getCenteredBounds(Math.round(contentHeight));
     barWindow.setBounds({ ...nextBounds, x: bounds.x, y: bounds.y });

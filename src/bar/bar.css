@@ -52,12 +52,16 @@ body {
 }
 
 #app {
+  display: flex;
+  flex-direction: column;
+  max-height: var(--max-bar-height, 680px);
   padding: 14px;
 }
 
 /* ---- Search pill ---- */
 
 #pill {
+  flex: none;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -98,6 +102,7 @@ body {
 /* ---- Selection-grab hint ---- */
 
 #selection-hint {
+  flex: none;
   margin-top: 8px;
   padding: 0 6px;
   font-size: 12px;
@@ -113,19 +118,57 @@ body {
 /* ---- Result card ---- */
 
 #result {
+  display: flex;
+  flex-direction: column;
+  flex: 0 1 auto;
+  min-height: 0;
   margin-top: 10px;
 }
 
 #result:empty {
+  display: none;
   margin-top: 0;
 }
 
 .card {
+  display: flex;
+  flex-direction: column;
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow: hidden;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 14px;
   box-shadow: 0 10px 30px var(--shadow);
-  padding: 20px 22px;
+}
+
+.card-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 20px 22px 16px;
+}
+
+.card-scroll::-webkit-scrollbar,
+#history::-webkit-scrollbar {
+  width: 6px;
+}
+
+.card-scroll::-webkit-scrollbar-track,
+#history::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.card-scroll::-webkit-scrollbar-thumb,
+#history::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+}
+
+.card-scroll::-webkit-scrollbar-thumb:hover,
+#history::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
 }
 
 .card-header {
@@ -197,12 +240,13 @@ body {
 }
 
 .footer {
+  flex: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-top: 16px;
-  padding-top: 12px;
+  margin: 0 22px;
+  padding: 12px 0 16px;
   border-top: 1px solid var(--border);
   font-size: 11px;
   color: var(--text-muted);
@@ -226,12 +270,15 @@ body {
 /* ---- History list ---- */
 
 #history {
+  flex: 0 1 auto;
+  min-height: 0;
   margin-top: 10px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 14px;
   box-shadow: 0 10px 30px var(--shadow);
-  overflow: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 #history:empty {
@@ -349,12 +396,11 @@ body {
 /* ---- Notice banner (design 2E): bleeds to the card edges ---- */
 
 .notice {
+  flex: none;
   display: flex;
   gap: 10px;
   align-items: flex-start;
-  margin: -20px -22px 16px;
   padding: 12px 18px;
-  border-radius: 13px 13px 0 0;
   background: var(--terra-bg);
   color: var(--terra-ink);
   font-size: 12px;
@@ -515,4 +561,43 @@ body {
 .open-btn:hover {
   border-color: var(--numeral);
   color: var(--numeral);
+}
+
+/* ---- Subtle Fetchmate credit ---- */
+
+#bar-credit {
+  flex: none;
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.bar-credit-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 84%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  font-size: 11px;
+  color: var(--text-muted);
+  opacity: 0.82;
+  transition: opacity 0.15s ease;
+}
+
+.bar-credit-pill:hover {
+  opacity: 1;
+}
+
+#bar-credit-link {
+  color: inherit;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+#bar-credit-link:hover {
+  color: var(--numeral);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }

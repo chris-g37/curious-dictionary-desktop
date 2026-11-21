@@ -179,6 +179,11 @@ Recommendation: A. Words not in the list (the long tail, ~80% of pack words) wou
   - Stale comments updated.
 - Not changed (noted for later): the bar window has no CSP and still uses system fonts; native title bar instead of the design's custom one; the Saved nav icon is not filled when active; global shortcut registration failures are silent.
 
+### v2.0.1 — Summon bar scroll fix + subtle Fetchmate credit
+- `main.js`: `getMaxBarHeight()` computes the available height below the summon bar's fixed `TOP_OFFSET_RATIO` (0.15) down to the bottom of `screen.getPrimaryDisplay().workArea` minus a 12px bottom margin, adapting automatically to any screen resolution and Windows DPI scaling. `getCenteredBounds()` clamps bar height to `[INITIAL_HEIGHT, maxHeight]` and passes `maxHeight` to `bar.html` on load and on every `bar-shown` event. Added `setWindowOpenHandler` / `will-navigate` guards to `barWindow`.
+- `src/bar/bar.css`, `src/bar/bar.html`, `src/bar/bar.js`: `#app` is a flex column capped at `--max-bar-height`. Every card uses `.card-scroll` (`overflow-y: auto`) so long entries (e.g., `shook` -> `shake`) scroll smoothly inside the window with the search pill pinned at the top and the card footer (source badge + Copy / Pin / History / Open in app) pinned at the bottom of the card. Added a subtle `"by Fetchmate Chief Technologies"` pill at the bottom of the summon bar linking to `https://services.fetchmate.tech` via `window.api.openExternal`.
+- Version bumped to `2.0.1`.
+
 ## Notes for the next window
 - Task 7 (Shona) is deferred until Chris asks for it; it needs data/kaikki-shona.jsonl.
 - Distribution (Microsoft Store / GitHub Releases / code signing) has been discussed but not started; see the backlog.

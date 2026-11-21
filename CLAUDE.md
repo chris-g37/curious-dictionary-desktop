@@ -18,7 +18,8 @@ Add (a) an offline dictionary pack, (b) a main app window, (c) interlinking betw
 - in the main window footer
 - on the Settings/About screen
 - in the README
-It links to https://services.fetchmate.tech. Open links via shell.openExternal, only for https URLs on an allowlist (services.fetchmate.tech, en.wiktionary.org, kaikki.org, dictionaryapi.com). Do NOT put it in the summon bar (keep the bar clean).
+- and a subtle "by Fetchmate Chief Technologies" pill at the bottom of the summon bar
+It links to https://services.fetchmate.tech. Open links via shell.openExternal, only for https URLs on an allowlist (services.fetchmate.tech, en.wiktionary.org, kaikki.org, dictionaryapi.com).
 
 ## Cross-cutting rules (added in handoff v2)
 - Memory/RAM: the summon bar stays hidden-but-alive; the main window is DESTROYED on close (not hidden); the floating icon stays off by default; the pack is read through node:sqlite page by page, never loaded whole into memory.

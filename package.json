@@ -1,6 +1,6 @@
 {
   "name": "curious-dictionary-desktop",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "A minimalist Windows dictionary app — summon it with a shortcut, look up a word, get on with your day.",
   "main": "main.js",
   "scripts": {

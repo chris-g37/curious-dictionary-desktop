@@ -3,21 +3,38 @@ const resultEl = document.getElementById("result");
 const historyEl = document.getElementById("history");
 const hintEl = document.getElementById("selection-hint");
 const appEl = document.getElementById("app");
+const creditLink = document.getElementById("bar-credit-link");
 
-// The initial theme rides in on the URL (set by main.js at loadFile time)
-// so the very first paint is already correct — no flash while we wait on
-// an IPC round trip. Live changes still arrive via onThemeChanged below.
-const initialTheme = new URLSearchParams(window.location.search).get("theme");
-document.documentElement.dataset.theme = initialTheme || "light";
+// The initial theme and max height ride in on the URL (set by main.js at
+// loadFile time) so the very first paint is already right — no flash while
+// we wait on an IPC round trip. Live changes arrive via IPC below.
+const initialParams = new URLSearchParams(window.location.search);
+document.documentElement.dataset.theme = initialParams.get("theme") || "light";
+
+function applyMaxHeight(maxHeight) {
+  const px = Number(maxHeight);
+  if (Number.isFinite(px) && px > 0) {
+    document.documentElement.style.setProperty("--max-bar-height", `${Math.round(px)}px`);
+  }
+}
+
+applyMaxHeight(initialParams.get("maxHeight"));
 
 window.api.onThemeChanged((theme) => {
   document.documentElement.dataset.theme = theme;
 });
 
+if (creditLink) {
+  creditLink.addEventListener("click", (event) => {
+    event.preventDefault();
+    window.api.openExternal("https://services.fetchmate.tech");
+  });
+}
+
 function reportSize() {
   // Tell the main process how tall our content is so it can resize the
   // (otherwise invisible, transparent) window to match — no dead click area.
-  window.api.resizeBar(appEl.scrollHeight);
+  window.api.resizeBar(Math.ceil(appEl.getBoundingClientRect().height));
 }
 
 function formatRelativeTime(timestamp) {
@@ -177,12 +194,14 @@ function renderEntry(entry, notice) {
   resultEl.innerHTML = `
     <div class="card">
       ${noticeHtml(notice)}
-      <div class="card-header">
-        <h1 class="headword">${esc(entry.word)}</h1>
-        ${pronHtml}
+      <div class="card-scroll">
+        <div class="card-header">
+          <h1 class="headword">${esc(entry.word)}</h1>
+          ${pronHtml}
+        </div>
+        ${fromHtml}
+        ${partsHtml}
       </div>
-      ${fromHtml}
-      ${partsHtml}
       ${footerHtml(entry.source, entry.sourceLabel, counterHtml(notice) + actionsHtml())}
     </div>
   `;
@@ -211,8 +230,10 @@ function renderNotFound(response) {
   resultEl.innerHTML = `
     <div class="card">
       ${noticeHtml(response.notice)}
-      <p class="not-found">No entry for <em>${esc(response.word)}</em></p>
-      ${suggestionsHtml}
+      <div class="card-scroll">
+        <p class="not-found">No entry for <em>${esc(response.word)}</em></p>
+        ${suggestionsHtml}
+      </div>
       ${footerHtml(response.source, response.sourceLabel, counterHtml(response.notice))}
     </div>
   `;
@@ -229,11 +250,13 @@ function renderNotFound(response) {
 function renderLimitNoPack(response) {
   resultEl.innerHTML = `
     <div class="card">
-      <p class="not-found">Daily lookup limit reached</p>
-      <p class="hint">
-        The Merriam-Webster free tier allows ${response.max.toLocaleString()} lookups a day. It
-        refreshes at midnight ET. Install the offline pack to keep looking up words.
-      </p>
+      <div class="card-scroll">
+        <p class="not-found">Daily lookup limit reached</p>
+        <p class="hint">
+          The Merriam-Webster free tier allows ${response.max.toLocaleString()} lookups a day. It
+          refreshes at midnight ET. Install the offline pack to keep looking up words.
+        </p>
+      </div>
       <div class="footer">
         <span class="counter">${response.count.toLocaleString()} / ${response.max.toLocaleString()} today</span>
         <button id="open-settings" class="primary-btn" type="button">Open settings</button>
@@ -249,7 +272,9 @@ function renderLimitNoPack(response) {
 function renderError(message) {
   resultEl.innerHTML = `
     <div class="card">
-      <p class="error-message">${esc(message)}</p>
+      <div class="card-scroll">
+        <p class="error-message">${esc(message)}</p>
+      </div>
     </div>
   `;
 }
@@ -259,11 +284,13 @@ function renderError(message) {
 function renderLoading() {
   resultEl.innerHTML = `
     <div class="card skeleton">
-      <div class="sk-line sk-title"></div>
-      <div class="sk-line sk-pos"></div>
-      <div class="sk-line"></div>
-      <div class="sk-line sk-w86"></div>
-      <div class="sk-line sk-w64"></div>
+      <div class="card-scroll">
+        <div class="sk-line sk-title"></div>
+        <div class="sk-line sk-pos"></div>
+        <div class="sk-line"></div>
+        <div class="sk-line sk-w86"></div>
+        <div class="sk-line sk-w64"></div>
+      </div>
       <div class="footer"><span class="loading-text">Looking up…</span></div>
     </div>
   `;
@@ -384,6 +411,9 @@ document.addEventListener("keydown", (event) => {
 });
 
 window.api.onBarShown((payload) => {
+  if (payload && payload.maxHeight) {
+    applyMaxHeight(payload.maxHeight);
+  }
   input.focus();
 
   if (payload && payload.selection) {
@@ -408,6 +438,7 @@ window.api.onBarShown((payload) => {
   if (input.value.trim() === "") {
     showHistory();
   }
+  reportSize();
 });
 
 new ResizeObserver(reportSize).observe(appEl);
